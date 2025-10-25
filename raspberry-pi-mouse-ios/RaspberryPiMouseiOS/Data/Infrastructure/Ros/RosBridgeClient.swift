@@ -64,7 +64,7 @@ extension RosBridgeClient: WebSocketClientDelegate {
 
     }
     
-    func webSocketClient(_ client: WebSocketClient, didReceiveDat data: Data) {
+    func webSocketClient(_ client: WebSocketClient, didReceiveData data: Data) {
 
     }
     

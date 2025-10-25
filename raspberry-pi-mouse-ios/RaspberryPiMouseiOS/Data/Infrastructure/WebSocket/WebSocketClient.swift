@@ -18,7 +18,7 @@ protocol WebSocketClientDelegate: AnyObject {
     func webSocketClient(didConnect client: WebSocketClient)
     func webSocketClient(didDisconnect client: WebSocketClient)
     func webSocketClient(_ client: WebSocketClient, didReceiveText text: String)
-    func webSocketClient(_ client: WebSocketClient, didReceiveDat data: Data)
+    func webSocketClient(_ client: WebSocketClient, didReceiveData data: Data)
     func webSocketClient(_ client: WebSocketClient, didReceiveError error: Error)
     func webSocketClient(_ client: WebSocketClient, failedSendingMessageError error: Error?)
 }
@@ -53,7 +53,7 @@ class WebSocketClient: WebSocketClientProtocol {
                 case .string(let messageString):
                     self.delegate?.webSocketClient(self, didReceiveText: messageString)
                 case .data(let messageData):
-                    self.delegate?.webSocketClient(self, didReceiveDat: messageData)
+                    self.delegate?.webSocketClient(self, didReceiveData: messageData)
                 @unknown default:
                     assertionFailure("Unexpected receive message type: \(message)")
                 }
