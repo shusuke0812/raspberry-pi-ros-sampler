@@ -28,16 +28,16 @@ class WebSocketClient: WebSocketClientProtocol {
 
     private var webSocketTask: URLSessionWebSocketTask?
     private let session: URLSession
-    private let url: URL
+    private let webSocketUrl: WebSocketUrl
 
-    init(urlString: String) {
+    init(webSocketUrl: WebSocketUrl) {
         self.session = URLSession.shared
-        self.url = URL(string: urlString)!
+        self.webSocketUrl = webSocketUrl
     }
 
     // TODO: ROSBridgeと接続するにはApp Transport Securityの設定が必要かも
     func connect() {
-        webSocketTask = session.webSocketTask(with: url)
+        webSocketTask = session.webSocketTask(with: webSocketUrl.url)
         webSocketTask?.resume()
         delegate?.webSocketClient(didConnect: self)
 
