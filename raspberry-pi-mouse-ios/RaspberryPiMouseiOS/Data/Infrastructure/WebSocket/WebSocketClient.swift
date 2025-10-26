@@ -12,7 +12,7 @@ protocol WebSocketClientProtocol {
     func disconnect()
     func send(text: String, completion: (() -> Void)?)
     func send(data: Data, completion: (() -> Void)?)
-    var delegate: WebSocketClientDelegate? { get set }
+    func configure(delegate: WebSocketClientDelegate?)
 }
 
 protocol WebSocketClientDelegate: AnyObject {
@@ -34,6 +34,10 @@ class WebSocketClient: WebSocketClientProtocol {
     init(webSocketUrl: WebSocketUrl) {
         self.session = URLSession.shared
         self.webSocketUrl = webSocketUrl
+    }
+
+    func configure(delegate: WebSocketClientDelegate?) {
+        self.delegate = delegate
     }
 
     // TODO: ROSBridgeと接続するにはApp Transport Securityの設定が必要かも
