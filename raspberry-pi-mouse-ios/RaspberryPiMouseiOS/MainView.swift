@@ -7,15 +7,26 @@
 
 import SwiftUI
 
+enum ScreenTab: Int {
+    case connection
+    case topic
+}
+
 struct MainView: View {
+    @State private var selectedTab: ScreenTab = .connection
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView(selection: $selectedTab) {
+            ConnectionScreen()
+                .tabItem {
+                    Label("Connection", systemImage: "network")
+                }
+                .tag(ScreenTab.connection.rawValue)
+            TopicScreen()
+                .tabItem {
+                    Label("Topic", systemImage: "dot.radiowaves.left.and.right")
+                }
         }
-        .padding()
     }
 }
 
