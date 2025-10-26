@@ -8,16 +8,17 @@
 import Foundation
 
 struct WebSocketUrl {
-    private let sheme = "ws://"
-    private let port = 9090
-    private let ipString: String
+    private let sheme = "ws"
+    private let port: Int
+    private let ipAddress: String
 
-    init(ipString: String) {
-        self.ipString = ipString
+    init(ipAddress: String, port: Int = 9090) {
+        self.ipAddress = ipAddress
+        self.port = port
     }
 
     var url: URL {
-        let path = sheme + ipString + ":\(port)"
+        let path = sheme + "://" + ipAddress + ":\(port)"
         return URL(string: path)!
     }
 }
