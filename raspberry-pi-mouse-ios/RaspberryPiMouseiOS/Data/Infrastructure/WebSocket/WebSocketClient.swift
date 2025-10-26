@@ -12,6 +12,7 @@ protocol WebSocketClientProtocol {
     func disconnect()
     func send(text: String, completion: (() -> Void)?)
     func send(data: Data, completion: (() -> Void)?)
+    var delegate: WebSocketClientDelegate? { get set }
 }
 
 protocol WebSocketClientDelegate: AnyObject {
