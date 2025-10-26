@@ -17,7 +17,7 @@ struct MainView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            ConnectionScreen()
+            ConnectionScreen(viewModel: ConnectionViewModel())
                 .tabItem {
                     Label("Connection", systemImage: "network")
                 }
