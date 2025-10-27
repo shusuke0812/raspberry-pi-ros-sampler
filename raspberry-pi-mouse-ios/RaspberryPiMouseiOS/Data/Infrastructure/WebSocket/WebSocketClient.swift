@@ -7,89 +7,89 @@
 
 import Foundation
 
-protocol WebSocketClientProtocol {
-    func connect()
-    func disconnect()
-    func send(text: String, completion: (() -> Void)?)
-    func send(data: Data, completion: (() -> Void)?)
-    func configure(delegate: WebSocketClientDelegate?)
-}
-
-protocol WebSocketClientDelegate: AnyObject {
-    func webSocketClient(didConnect client: WebSocketClient)
-    func webSocketClient(didDisconnect client: WebSocketClient)
-    func webSocketClient(_ client: WebSocketClient, didReceiveText text: String)
-    func webSocketClient(_ client: WebSocketClient, didReceiveData data: Data)
-    func webSocketClient(_ client: WebSocketClient, didReceiveError error: Error)
-    func webSocketClient(_ client: WebSocketClient, failedSendingMessageError error: Error?)
-}
-
-class WebSocketClient: WebSocketClientProtocol {
-    weak var delegate: WebSocketClientDelegate?
-
+final class WebSocketClient: NSObject {
     private var webSocketTask: URLSessionWebSocketTask?
-    private let session: URLSession
-    private let webSocketUrl: WebSocketUrl
+    private var session: URLSession?
 
-    init(webSocketUrl: WebSocketUrl) {
-        self.session = URLSession.shared
-        self.webSocketUrl = webSocketUrl
+    private var stateConnection: AsyncStream<WebSocketConnectionState>.Continuation?
+    var connectionStates: AsyncStream<WebSocketConnectionState> {
+        AsyncStream { continuation in
+            self.stateConnection = continuation
+        }
     }
 
-    func configure(delegate: WebSocketClientDelegate?) {
-        self.delegate = delegate
+    private var messageContinuation: AsyncThrowingStream<String, Error>.Continuation?
+    var messages: AsyncThrowingStream<String, Error> {
+        AsyncThrowingStream { continuation in
+            self.messageContinuation = continuation
+            return ()
+        }
+    }
+
+    override init() {
+        super.init()
+        self.session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
     }
 
     // TODO: ROSBridgeと接続するにはApp Transport Securityの設定が必要かも
-    func connect() {
-        webSocketTask = session.webSocketTask(with: webSocketUrl.url)
+    func connect(webSocketUrl: WebSocketUrl) {
+        webSocketTask = session?.webSocketTask(with: webSocketUrl.url)
         webSocketTask?.resume()
-        delegate?.webSocketClient(didConnect: self)
-
-        receiveMessage()
     }
 
-    private func receiveMessage() {
-        webSocketTask?.receive { [weak self] result in
-            guard let self else { return }
-            switch result {
-            case .success(let message):
-                switch message {
-                case .string(let messageString):
-                    self.delegate?.webSocketClient(self, didReceiveText: messageString)
-                case .data(let messageData):
-                    self.delegate?.webSocketClient(self, didReceiveData: messageData)
-                @unknown default:
-                    assertionFailure("Unexpected receive message type: \(message)")
-                }
-            case .failure(let error):
-                self.delegate?.webSocketClient(self, didReceiveError: error)
-                return
-            }
-            self.receiveMessage()
-        }
-    }
-
-    // TODO: 切断理由（closeCode）を引数で渡す
     func disconnect() {
         webSocketTask?.cancel(with: .normalClosure, reason: nil)
         webSocketTask = nil
-        delegate?.webSocketClient(didDisconnect: self)
+        cancelAllAsyncStreams()
     }
 
-    func send(text: String, completion: (() -> Void)?) {
-        let message = URLSessionWebSocketTask.Message.string(text)
-        webSocketTask?.send(message) { [weak self] error in
-            guard let self else { return }
-            self.delegate?.webSocketClient(self, failedSendingMessageError: error)
+    func send(text: String) async throws {
+        try await webSocketTask?.send(.string(text))
+    }
+
+    func send(data: Data) async throws {
+        try await webSocketTask?.send(.data(data))
+    }
+
+    private func receiveMessages() async {
+        guard let task = webSocketTask else {
+            return
+        }
+        do {
+            while true {
+                let message = try await task.receive()
+                switch message {
+                case .string(let text):
+                    messageContinuation?.yield(text)
+                case .data(let data):
+                    if let text = String(data: data, encoding: .utf8) {
+                        messageContinuation?.yield(text)
+                    }
+                @unknown default:
+                    assertionFailure("Unexpected receive message type: \(message)")
+                }
+            }
+        } catch {
+            messageContinuation?.finish(throwing: error)
         }
     }
 
-    func send(data: Data, completion: (() -> Void)?) {
-        let message = URLSessionWebSocketTask.Message.data(data)
-        webSocketTask?.send(message) { [weak self] error in
-            guard let self else { return }
-            self.delegate?.webSocketClient(self, failedSendingMessageError: error)
-        }
+    private func cancelAllAsyncStreams() {
+        messageContinuation?.finish()
+        stateConnection?.finish()
+    }
+}
+
+// MARK: - URLSessionWebSocketDelegate
+
+extension WebSocketClient: URLSessionWebSocketDelegate {
+    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
+        stateConnection?.yield(.connected)
+        Task { await receiveMessages() }
+    }
+    
+    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+        stateConnection?.yield(.disconnected(closeCode: closeCode, reason: reason))
+        cancelAllAsyncStreams()
     }
 }
