@@ -20,6 +20,16 @@ struct RosTopic {
         case unsubscribe
     }
 
+    func isEqual(to message: String) -> Bool {
+        guard let messageData = message.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: messageData) as? [String: Any],
+              let messageTopic = json["topic"] as? String,
+              messageTopic == name else { // TODO: idによる比較も入れる
+            return false
+        }
+        return true
+    }
+
     func toJSONString() -> String? {
         guard let jsonData = try? JSONSerialization.data(withJSONObject: toDictionary()),
               let jsonString = String(data: jsonData, encoding: .utf8) else {
