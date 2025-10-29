@@ -9,70 +9,49 @@ import Foundation
 
 // Ref: https://github.com/RobotWebTools/roslibjs/blob/develop/src/core/Ros.js
 
-class RosBridgeClient {
-    private let websocketClient: WebSocketClient
-    private var connectionStatus: [CheckedContinuation<RosBridgeConnectionStatus, Never>] = []
+protocol RosBridgeProtocol {
+    func connect(ipAddress: String)
+    func disconnect()
+    func observeConnectionState() -> AsyncStream<WebSocketConnectionState>
+    func subscribe(topic: RosTopic, onMessage: @escaping (String) -> Void)
+}
 
-    init(urlString: String) {
-        websocketClient = WebSocketClient(urlString: urlString)
-        websocketClient.delegate = self
+class RosBridgeClient: RosBridgeProtocol {
+    private let websocketClient: WebSocketClient
+    
+    init() {
+        websocketClient = WebSocketClient()
     }
 
-    func connect() {
-        websocketClient.connect()
+    // MARK: - Connection
+
+    func connect(ipAddress: String) {
+        websocketClient.connect(webSocketUrl: WebSocketUrl(ipAddress: ipAddress))
     }
 
     func disconnect() {
         websocketClient.disconnect()
     }
 
-    func observeConnectionStatus() async -> AsyncStream<RosBridgeConnectionStatus> {
-        return AsyncStream { continuation in
-            let task = Task {
-                while !Task.isCancelled {
-                    let status = await withCheckedContinuation { cont in
-                        connectionStatus.append(cont)
-                    }
-                    continuation.yield(status)
+    func observeConnectionState() -> AsyncStream<WebSocketConnectionState> {
+        return websocketClient.connectionStates
+    }
+
+    // MARK: - Publish / Subscribe
+
+    func subscribe(topic: RosTopic, onMessage: @escaping (String) -> Void) {
+        guard let topicJsonString = topic.toJSONString(), topic.op == .subscribe else {
+            assertionFailure()
+            return
+        }
+
+        Task {
+            try? await websocketClient.send(text: topicJsonString)
+            for try await message in websocketClient.messages {
+                if topic.isEqual(to: message) {
+                    onMessage(message)
                 }
             }
-
-            continuation.onTermination = { _ in
-                task.cancel()
-            }
         }
-    }
-}
-
-// MARK: - WebSocketClientDelegate
-extension RosBridgeClient: WebSocketClientDelegate {
-    func webSocketClient(didConnect client: WebSocketClient) {
-        connectionStatus.forEach { continuation in
-            continuation.resume(returning: .connected)
-        }
-        connectionStatus.removeAll()
-    }
-    
-    func webSocketClient(didDisconnect client: WebSocketClient) {
-        connectionStatus.forEach { continuation in
-            continuation.resume(returning: .disconnected)
-        }
-        connectionStatus.removeAll()
-    }
-    
-    func webSocketClient(_ client: WebSocketClient, didReceiveText text: String) {
-
-    }
-    
-    func webSocketClient(_ client: WebSocketClient, didReceiveData data: Data) {
-
-    }
-    
-    func webSocketClient(_ client: WebSocketClient, didReceiveError error: any Error) {
-
-    }
-    
-    func webSocketClient(_ client: WebSocketClient, failedSendingMessageError error: (any Error)?) {
-
     }
 }
