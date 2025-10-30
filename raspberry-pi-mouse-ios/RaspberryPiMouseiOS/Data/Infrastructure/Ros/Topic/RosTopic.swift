@@ -24,9 +24,16 @@ struct RosTopic {
         guard let messageData = message.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: messageData) as? [String: Any],
               let messageTopic = json["topic"] as? String,
-              messageTopic == name else { // TODO: idによる比較も入れる
+              messageTopic == name else {
             return false
         }
+
+        if let expectedId = id {
+            guard let messageId = json["id"] as? String, messageId == expectedId else {
+                return false
+            }
+        }
+
         return true
     }
 
@@ -56,4 +63,5 @@ struct RosTopic {
         return dictionary
     }
 }
+
 
