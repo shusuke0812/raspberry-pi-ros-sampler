@@ -33,6 +33,7 @@ final class WebSocketClient: NSObject {
 
     // TODO: ROSBridgeと接続するにはApp Transport Securityの設定が必要かも
     func connect(webSocketUrl: WebSocketUrl) {
+        stateConnection?.yield(.connecting)
         webSocketTask = session?.webSocketTask(with: webSocketUrl.url)
         webSocketTask?.resume()
     }
