@@ -10,6 +10,8 @@ import Foundation
 final class WebSocketClient: NSObject {
     private var webSocketTask: URLSessionWebSocketTask?
     private var session: URLSession?
+    private var timeoutTask: Task<Void, Never>?
+    private let connectionTimeoutSeconds: TimeInterval = 10.0
 
     private var stateConnection: AsyncStream<WebSocketConnectionState>.Continuation?
     var connectionStates: AsyncStream<WebSocketConnectionState> {
@@ -33,12 +35,18 @@ final class WebSocketClient: NSObject {
 
     // TODO: ROSBridgeと接続するにはApp Transport Securityの設定が必要かも
     func connect(webSocketUrl: WebSocketUrl) {
+        timeoutTask?.cancel()
+        
         stateConnection?.yield(.connecting)
         webSocketTask = session?.webSocketTask(with: webSocketUrl.url)
         webSocketTask?.resume()
+        
+        startConnectionTimeout()
     }
 
     func disconnect() {
+        timeoutTask?.cancel()
+        timeoutTask = nil
         webSocketTask?.cancel(with: .normalClosure, reason: nil)
         webSocketTask = nil
         cancelAllAsyncStreams()
@@ -79,12 +87,32 @@ final class WebSocketClient: NSObject {
         messageContinuation?.finish()
         stateConnection?.finish()
     }
+    
+    private func startConnectionTimeout() {
+        timeoutTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                try await Task.sleep(nanoseconds: UInt64(self.connectionTimeoutSeconds * 1_000_000_000))
+                await MainActor.run {
+                    self.stateConnection?.yield(.connectingTimeout)
+                    self.webSocketTask?.cancel(with: .normalClosure, reason: nil)
+                    self.webSocketTask = nil
+                    self.cancelAllAsyncStreams()
+                }
+            } catch {
+                // do nothing
+            }
+        }
+    }
 }
 
 // MARK: - URLSessionWebSocketDelegate
 
 extension WebSocketClient: URLSessionWebSocketDelegate {
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
+        timeoutTask?.cancel()
+        timeoutTask = nil
+        
         stateConnection?.yield(.connected)
         Task { await receiveMessages() }
     }

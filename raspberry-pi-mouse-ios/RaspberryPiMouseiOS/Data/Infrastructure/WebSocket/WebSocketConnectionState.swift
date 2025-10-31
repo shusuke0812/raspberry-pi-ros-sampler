@@ -11,4 +11,5 @@ enum WebSocketConnectionState {
     case connecting
     case connected
     case disconnected(closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?)
+    case connectingTimeout
 }
