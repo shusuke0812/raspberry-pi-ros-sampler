@@ -8,7 +8,7 @@
 import Foundation
 
 struct RosTopic {
-    let id: String?
+    let id: String = UUID().uuidString
     let op: Operation
     let name: String
     let messageType: String
@@ -28,10 +28,8 @@ struct RosTopic {
             return false
         }
 
-        if let expectedId = id {
-            guard let messageId = json["id"] as? String, messageId == expectedId else {
-                return false
-            }
+        guard let messageId = json["id"] as? String, messageId == id else {
+            return false
         }
 
         return true
@@ -48,13 +46,10 @@ struct RosTopic {
     private func toDictionary() -> [String: Any] {
         var dictionary: [String: Any] = [
             "op": op.rawValue,
+            "id": id,
             "topic": name,
             "type": messageType
         ]
-
-        if let id = id {
-            dictionary["id"] = id
-        }
 
         if let throttelRate = throttelRate {
             dictionary["throttle_rate"] = throttelRate
