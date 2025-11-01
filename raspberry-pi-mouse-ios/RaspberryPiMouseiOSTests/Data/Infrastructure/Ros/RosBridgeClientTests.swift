@@ -1,17 +1,16 @@
 //
-//  RaspberryPiMouseiOSTests.swift
+//  RosBridgeClientTests.swift
 //  RaspberryPiMouseiOSTests
 //
-//  Created by Shusuke Ota on 2025/10/13.
+//  Created by Shusuke Ota on 2025/11/1.
 //
 
 import Testing
 @testable import RaspberryPiMouseiOS
 
-struct RaspberryPiMouseiOSTests {
+struct RosBridgeClientTests {
 
-    @Test func example() async throws {
+    @Test func testSubscribeTopic() async throws {
         // Write your test here and use APIs like `#expect(...)` to check expected conditions.
     }
-
 }
