@@ -44,7 +44,7 @@ struct RosTopicSubscribe: RosTopicProtocol, Codable {
         return true
     }
 
-    func toJSONString() -> String? {
+    func toJsonString() -> String? {
         guard let jsonData = try? JSONEncoder().encode(self),
               let jsonString = String(data: jsonData, encoding: .utf8) else {
             return nil

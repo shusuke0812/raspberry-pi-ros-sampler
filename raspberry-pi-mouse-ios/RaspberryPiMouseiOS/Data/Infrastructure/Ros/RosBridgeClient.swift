@@ -40,7 +40,7 @@ class RosBridgeClient: RosBridgeProtocol {
     // MARK: - Publish / Subscribe
 
     func subscribe(topic: RosTopicSubscribe, onMessage: @escaping (String) -> Void) {
-        guard let topicJsonString = topic.toJSONString(), topic.op == .subscribe else {
+        guard let topicJsonString = topic.toJsonString(), topic.op == .subscribe else {
             assertionFailure()
             return
         }
