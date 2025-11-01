@@ -8,6 +8,7 @@
 import Foundation
 
 enum WebSocketConnectionState: Equatable {
+    case ready
     case connecting
     case connected
     case disconnected(closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?)
@@ -15,6 +16,8 @@ enum WebSocketConnectionState: Equatable {
 
     var description: String {
         switch self {
+        case .ready:
+            return "未接続"
         case .connecting:
             return "接続中..."
         case .connected:
