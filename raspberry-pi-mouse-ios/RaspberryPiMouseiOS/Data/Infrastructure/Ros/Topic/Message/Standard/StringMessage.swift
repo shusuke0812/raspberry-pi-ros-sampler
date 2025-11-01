@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// [std_msgs/msg/String Message](https://docs.ros2.org/foxy/api/std_msgs/msg/String.html)
+/// [std_msgs/msg/String Message](https://github.com/ros2/common_interfaces/blob/jazzy/std_msgs/msg/String.msg)
 struct StringMessage: RosMessage {
     let data: String
 
