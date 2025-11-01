@@ -37,14 +37,12 @@ struct RosTopic: Codable {
     }
 
     func isEqual(to message: String) -> Bool {
-        guard let messageData = message.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: messageData) as? [String: Any],
-              let messageTopic = json["topic"] as? String,
-              messageTopic == name else {
+        guard let rosTopic = Self.decodeMessage(from: message),
+              rosTopic.name == name else {
             return false
         }
 
-        guard let messageId = json["id"] as? String, messageId == id else {
+        if (rosTopic.id != id) {
             return false
         }
 
@@ -58,6 +56,11 @@ struct RosTopic: Codable {
         }
         return jsonString
     }
+
+    static func decodeMessage(from jsonString: String) -> RosTopic? {
+        guard let jsonData = jsonString.data(using: .utf8) else {
+            return nil
+        }
+        return try? JSONDecoder().decode(RosTopic.self, from: jsonData)
+    }
 }
-
-
