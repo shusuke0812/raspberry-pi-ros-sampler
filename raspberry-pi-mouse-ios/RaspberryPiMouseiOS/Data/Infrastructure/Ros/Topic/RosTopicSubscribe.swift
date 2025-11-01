@@ -23,9 +23,9 @@ struct RosTopicSubscribe: RosTopicProtocol, Codable {
         case throttelRate = "throttle_rate"
     }
 
-    init(op: RosTopicOperation, topic: String, messageType: String, throttelRate: Int? = nil) {
-        self.id = UUID().uuidString
-        self.op = op
+    init(id: String? = nil, topic: String, messageType: String, throttelRate: Int? = nil) {
+        self.id = id
+        self.op = RosTopicOperation.subscribe
         self.topic = topic
         self.messageType = messageType
         self.throttelRate = throttelRate
