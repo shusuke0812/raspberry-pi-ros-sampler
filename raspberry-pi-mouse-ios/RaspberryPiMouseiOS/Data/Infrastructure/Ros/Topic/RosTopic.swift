@@ -9,16 +9,10 @@ import Foundation
 
 struct RosTopic: Codable {
     let id: String
-    let op: Operation
+    let op: RosTopicOperation
     let name: String
     let messageType: String
     let throttelRate: Int?
-
-    enum Operation: String, Codable {
-        case subscribe
-        case publish
-        case unsubscribe
-    }
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -28,7 +22,7 @@ struct RosTopic: Codable {
         case throttelRate = "throttle_rate"
     }
 
-    init(op: Operation, name: String, messageType: String, throttelRate: Int? = nil) {
+    init(op: RosTopicOperation, name: String, messageType: String, throttelRate: Int? = nil) {
         self.id = UUID().uuidString
         self.op = op
         self.name = name
