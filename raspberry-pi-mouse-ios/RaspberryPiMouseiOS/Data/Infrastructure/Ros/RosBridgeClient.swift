@@ -13,7 +13,7 @@ protocol RosBridgeProtocol {
     func connect(ipAddress: String)
     func disconnect()
     func observeConnectionState() -> AsyncStream<WebSocketConnectionState>
-    func subscribe(topic: RosTopic, onMessage: @escaping (String) -> Void)
+    func subscribe(topic: RosTopicSubscribe, onMessage: @escaping (String) -> Void)
 }
 
 class RosBridgeClient: RosBridgeProtocol {
@@ -39,7 +39,7 @@ class RosBridgeClient: RosBridgeProtocol {
 
     // MARK: - Publish / Subscribe
 
-    func subscribe(topic: RosTopic, onMessage: @escaping (String) -> Void) {
+    func subscribe(topic: RosTopicSubscribe, onMessage: @escaping (String) -> Void) {
         guard let topicJsonString = topic.toJSONString(), topic.op == .subscribe else {
             assertionFailure()
             return
