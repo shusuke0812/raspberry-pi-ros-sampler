@@ -7,17 +7,33 @@
 
 import Foundation
 
-struct RosTopic {
-    let id: String = UUID().uuidString
+struct RosTopic: Codable {
+    let id: String
     let op: Operation
     let name: String
     let messageType: String
     let throttelRate: Int?
 
-    enum Operation: String {
+    enum Operation: String, Codable {
         case subscribe
         case publish
         case unsubscribe
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case op
+        case name = "topic"
+        case messageType = "type"
+        case throttelRate = "throttle_rate"
+    }
+
+    init(op: Operation, name: String, messageType: String, throttelRate: Int? = nil) {
+        self.id = UUID().uuidString
+        self.op = op
+        self.name = name
+        self.messageType = messageType
+        self.throttelRate = throttelRate
     }
 
     func isEqual(to message: String) -> Bool {
@@ -36,26 +52,11 @@ struct RosTopic {
     }
 
     func toJSONString() -> String? {
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: toDictionary()),
+        guard let jsonData = try? JSONEncoder().encode(self),
               let jsonString = String(data: jsonData, encoding: .utf8) else {
             return nil
         }
         return jsonString
-    }
-
-    private func toDictionary() -> [String: Any] {
-        var dictionary: [String: Any] = [
-            "op": op.rawValue,
-            "id": id,
-            "topic": name,
-            "type": messageType
-        ]
-
-        if let throttelRate = throttelRate {
-            dictionary["throttle_rate"] = throttelRate
-        }
-
-        return dictionary
     }
 }
 
