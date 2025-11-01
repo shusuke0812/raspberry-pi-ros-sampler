@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// [Subscribe Protocol](https://github.com/RobotWebTools/rosbridge_suite/blob/ros2/ROSBRIDGE_PROTOCOL.md#334-subscribe)
 struct RosTopicSubscribe: RosTopicProtocol, Codable {
     let id: String?
     let op: RosTopicOperation
