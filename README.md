@@ -19,5 +19,7 @@ $ ros2 launch rosbridge_server rosbridge_websocket_launch.xml
 
 Publish
 ```bash
-$ ros2 topic pub /hello std_msgs/String "data: 'Hello world'" -r 1 # -r：Hz, 1秒間に送信する回数を指定
+# 1秒間に1回Topicを発行する例
+# -r：Hz, 1秒間に送信する回数を指定
+$ ros2 topic pub /hello std_msgs/String "data: 'Hello world'" -r 1
 ```
