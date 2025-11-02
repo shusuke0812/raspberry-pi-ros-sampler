@@ -8,7 +8,7 @@
 import Foundation
 
 /// [Subscribe Protocol](https://github.com/RobotWebTools/rosbridge_suite/blob/ros2/ROSBRIDGE_PROTOCOL.md#334-subscribe)
-struct RosTopicSubscribe: RosTopicProtocol, Codable {
+struct RosTopicSubscribe: RosTopicProtocol {
     let id: String?
     let op: RosTopicOperation
     let topic: String
@@ -42,14 +42,6 @@ struct RosTopicSubscribe: RosTopicProtocol, Codable {
         }
 
         return true
-    }
-
-    func toJsonString() -> String? {
-        guard let jsonData = try? JSONEncoder().encode(self),
-              let jsonString = String(data: jsonData, encoding: .utf8) else {
-            return nil
-        }
-        return jsonString
     }
 
     static func decodeMessage(from jsonString: String) -> RosTopicSubscribe? {

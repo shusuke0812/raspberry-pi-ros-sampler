@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct RosTopicPublish: RosTopicProtocol, Codable {
+struct RosTopicPublish: RosTopicProtocol {
     let id: String?
     let op: RosTopicOperation
     let topic: String

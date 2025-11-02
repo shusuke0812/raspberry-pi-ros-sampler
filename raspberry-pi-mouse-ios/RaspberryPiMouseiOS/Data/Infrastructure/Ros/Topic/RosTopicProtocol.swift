@@ -7,8 +7,19 @@
 
 import Foundation
 
-protocol RosTopicProtocol {
+protocol RosTopicProtocol: Codable {
     var op: RosTopicOperation { get }
     var id: String? { get }
     var topic: String { get }
+    func toJsonString() -> String?
+}
+
+extension RosTopicProtocol {
+    func toJsonString() -> String? {
+        guard let jsonData = try? JSONEncoder().encode(self),
+              let jsonString = String(data: jsonData, encoding: .utf8) else {
+            return nil
+        }
+        return jsonString
+    }
 }
