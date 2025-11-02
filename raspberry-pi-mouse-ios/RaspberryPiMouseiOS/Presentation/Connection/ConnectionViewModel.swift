@@ -10,40 +10,41 @@ import Foundation
 
 protocol ConnectionViewModelProtocol: ObservableObject {
     var ipAddress: String { get set }
-    var connectionStatus: String { get }
+    var connectionStatus: WebSocketConnectionState { get }
     func connect()
+    func disconnect()
 }
 
 class ConnectionViewModel: ConnectionViewModelProtocol {
-    @Published private(set) var connectionStatus: String = "未接続"
+    @Published private(set) var connectionStatus = WebSocketConnectionState.ready
     @Published var ipAddress: String = ""
 
-    private let rosBridgeClient: RosBridgeClient
     private var observationTask: Task<Void, Never>?
+    private let rosBridgeConnectionRepository: RosBridgeConnectionRepositoryProtocol
 
-    init() {
-        rosBridgeClient = RosBridgeClient()
-        startObservingConnectionStatus()
+    init(rosBridgeConnectionRepository: RosBridgeConnectionRepositoryProtocol = RosBridgeConnectionRepository()) {
+        self.rosBridgeConnectionRepository = rosBridgeConnectionRepository
+        self.startObservingConnectionState()
     }
     
     deinit {
         observationTask?.cancel()
     }
     
-    private func startObservingConnectionStatus() {
+    private func startObservingConnectionState() {
         observationTask = Task { @MainActor in
-            for await status in await rosBridgeClient.observeConnectionStatus() {
-                switch status {
-                case .connected:
-                    connectionStatus = "接続中"
-                case .disconnected:
-                    connectionStatus = "切断"
-                }
+            for await state in rosBridgeConnectionRepository.observeConnectionState() {
+                self.connectionStatus = state
             }
         }
     }
 
     func connect() {
-        rosBridgeClient.connect(ipAddress: ipAddress)
+        rosBridgeConnectionRepository.connect(ipAddress: ipAddress)
+    }
+    
+    func disconnect() {
+        rosBridgeConnectionRepository.disconnect()
     }
 }
+
