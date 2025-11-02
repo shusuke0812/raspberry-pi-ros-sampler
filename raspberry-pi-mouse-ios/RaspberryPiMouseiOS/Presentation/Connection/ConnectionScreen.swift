@@ -13,8 +13,8 @@ struct ConnectionScreen<ViewModel: ConnectionViewModelProtocol>: View {
     private let screenWidth = UIScreen.main.bounds
 
     var body: some View {
-        VStack(spacing: 30) {
-            Text("接続状態: \(viewModel.connectionStatus.description)")
+        VStack(alignment: .leading, spacing: 30) {
+            Text("RosBridge Server: \(viewModel.connectionStatus.description)")
                 .font(.headline)
             TextField("IP Address", text: $viewModel.ipAddress)
                 .frame(width: screenWidth.width * 0.7)
