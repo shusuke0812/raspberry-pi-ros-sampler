@@ -7,24 +7,22 @@
 
 import Foundation
 
-class RosBridgeConnectionRepository {
-    static let shared = RosBridgeConnectionRepository()
+protocol RosBridgeConnectionRepositoryProtocol {
+    func connect(ipAddress: String)
+    func disconnect()
+    func observeConnectionState() -> AsyncStream<WebSocketConnectionState>
+}
 
-    private let rosBridgeClient: RosBridgeConnectionProtocol
-
-    private init() {
-        self.rosBridgeClient = RosBridgeClient()
-    }
-
+class RosBridgeConnectionRepository: RosBridgeConnectionRepositoryProtocol {
     func connect(ipAddress: String) {
-        rosBridgeClient.connect(ipAddress: ipAddress)
+        RosBridgeClient.shared.connect(ipAddress: ipAddress)
     }
 
     func disconnect() {
-        rosBridgeClient.disconnect()
+        RosBridgeClient.shared.disconnect()
     }
 
     func observeConnectionState() -> AsyncStream<WebSocketConnectionState> {
-        return rosBridgeClient.observeConnectionState()
+        return RosBridgeClient.shared.observeConnectionState()
     }
 }

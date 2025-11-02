@@ -20,9 +20,10 @@ protocol RosBridgeSubscriptionProtocol {
 }
 
 class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtocol {
+    static let shared = RosBridgeClient()
     private let websocketClient: WebSocketClient
     
-    init() {
+    private init() {
         websocketClient = WebSocketClient()
     }
 
