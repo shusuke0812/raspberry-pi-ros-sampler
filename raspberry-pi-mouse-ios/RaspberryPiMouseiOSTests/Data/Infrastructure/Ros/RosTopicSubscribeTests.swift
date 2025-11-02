@@ -18,7 +18,7 @@ struct RosTopicSubscribeTests {
     }
     """
 
-    // MARK: - Success
+    // MARK: - 想定したTopicレスポンスが帰って来た場合
 
     @Test func testDecodeMessageToRosTopicPublish() {
         let message = topicSubscribeMock.decodeMessage(from: topicSubscribeResponseMock)
