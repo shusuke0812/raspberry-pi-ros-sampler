@@ -9,14 +9,17 @@ import Foundation
 
 // Ref: https://github.com/RobotWebTools/roslibjs/blob/develop/src/core/Ros.js
 
-protocol RosBridgeProtocol {
+protocol RosBridgeConnectionProtocol {
     func connect(ipAddress: String)
     func disconnect()
     func observeConnectionState() -> AsyncStream<WebSocketConnectionState>
+}
+
+protocol RosBridgeSubscriptionProtocol {
     func subscribe(topic: RosTopicSubscribe, onMessage: @escaping (String) -> Void)
 }
 
-class RosBridgeClient: RosBridgeProtocol {
+class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtocol {
     private let websocketClient: WebSocketClient
     
     init() {
