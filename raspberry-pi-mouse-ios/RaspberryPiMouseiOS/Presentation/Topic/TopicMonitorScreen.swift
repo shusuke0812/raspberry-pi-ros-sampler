@@ -23,8 +23,8 @@ struct TopicMonitorScreen<ViewModel: TopicMonitorScreenViewModelProtocol>: View 
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 10) {
-                        ForEach(Array(viewModel.messages.enumerated()), id: \.offset) { index, message in
-                            Text("\(index + 1). \(message)")
+                        ForEach(Array(viewModel.messages.enumerated()), id: \.offset) { _, message in
+                            Text("\(message)")
                                 .padding(.horizontal)
                                 .padding(.vertical, 8)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -43,7 +43,7 @@ struct TopicMonitorScreen<ViewModel: TopicMonitorScreenViewModelProtocol>: View 
                     .frame(width: screenWidth.width * 0.65)
             }
             .buttonStyle(.borderedProminent)
-            .padding(.bottom, 40)
+            .padding(.bottom, 20)
         }
         .padding()
     }

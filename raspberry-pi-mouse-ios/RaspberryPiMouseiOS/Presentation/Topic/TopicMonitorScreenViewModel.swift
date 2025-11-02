@@ -23,8 +23,9 @@ class TopicMonitorScreenViewModel: TopicMonitorScreenViewModelProtocol {
 
     func subscribeHelloMessage() {
         helloMessageRepository.subscribeHelloMessage { [weak self] message in
+            guard let self else { return }
             Task { @MainActor in
-                self?.messages.append(message)
+                self.messages.insert("\(self.messages.count)." + message, at: 0)
             }
         }
     }
