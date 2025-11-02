@@ -21,11 +21,12 @@ struct MainView: View {
                 .tabItem {
                     Label("Connection", systemImage: "network")
                 }
-                .tag(ScreenTab.connection.rawValue)
-            TopicScreen()
+                .tag(ScreenTab.connection)
+            TopicMonitorScreen(viewModel: TopicMonitorScreenViewModel())
                 .tabItem {
-                    Label("Topic", systemImage: "dot.radiowaves.left.and.right")
+                    Label("Topic Monitor", systemImage: "dot.radiowaves.left.and.right")
                 }
+                .tag(ScreenTab.topic)
         }
     }
 }
