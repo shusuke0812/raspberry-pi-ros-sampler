@@ -49,7 +49,7 @@ final class WebSocketClient: NSObject {
         timeoutTask = nil
         webSocketTask?.cancel(with: .normalClosure, reason: nil)
         webSocketTask = nil
-        cancelAllAsyncStreams()
+        messageContinuation?.finish()
     }
 
     func send(text: String) async throws {
@@ -82,11 +82,6 @@ final class WebSocketClient: NSObject {
             messageContinuation?.finish(throwing: error)
         }
     }
-
-    private func cancelAllAsyncStreams() {
-        messageContinuation?.finish()
-        stateConnection?.finish()
-    }
     
     private func startConnectionTimeout() {
         timeoutTask = Task { [weak self] in
@@ -97,7 +92,7 @@ final class WebSocketClient: NSObject {
                     self.stateConnection?.yield(.connectingTimeout)
                     self.webSocketTask?.cancel(with: .normalClosure, reason: nil)
                     self.webSocketTask = nil
-                    self.cancelAllAsyncStreams()
+                    self.stateConnection?.yield(.ready)
                 }
             } catch {
                 // do nothing
@@ -119,6 +114,6 @@ extension WebSocketClient: URLSessionWebSocketDelegate {
     
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
         stateConnection?.yield(.disconnected(closeCode: closeCode, reason: reason))
-        cancelAllAsyncStreams()
+        messageContinuation?.finish()
     }
 }
