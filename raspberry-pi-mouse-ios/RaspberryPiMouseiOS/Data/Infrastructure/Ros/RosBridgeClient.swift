@@ -16,7 +16,7 @@ protocol RosBridgeConnectionProtocol {
 }
 
 protocol RosBridgeSubscriptionProtocol {
-    func subscribe(topic: RosTopicSubscribe, onMessage: @escaping (String) -> Void)
+    func subscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (String) -> Void)
 }
 
 class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtocol {
@@ -43,7 +43,7 @@ class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtoco
 
     // MARK: - Publish / Subscribe
 
-    func subscribe(topic: RosTopicSubscribe, onMessage: @escaping (String) -> Void) {
+    func subscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (String) -> Void) {
         guard let topicJsonString = topic.toJsonString(), topic.op == .subscribe else {
             assertionFailure()
             return

@@ -7,11 +7,11 @@
 
 import Foundation
 
-struct RosTopicPublish: RosTopicProtocol {
+struct RosTopicPublish<T: RosMessageProtocol>: RosTopicPublishProtocol {
     let id: String?
     let op: RosTopicOperation
     let topic: String
-    let message: String
+    let message: T
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -20,10 +20,10 @@ struct RosTopicPublish: RosTopicProtocol {
         case message = "msg"
     }
 
-    init(id: String? = nil, topic: String, message: RosMessage) {
+    init(id: String? = nil, topic: String, message: T) {
         self.id = id
         self.op = RosTopicOperation.publish
         self.topic = topic
-        self.message = message.toJsonString()
+        self.message = message
     }
 }

@@ -8,12 +8,14 @@
 import Foundation
 
 /// [Subscribe Protocol](https://github.com/RobotWebTools/rosbridge_suite/blob/ros2/ROSBRIDGE_PROTOCOL.md#334-subscribe)
-struct RosTopicSubscribe: RosTopicProtocol {
+struct RosTopicSubscribe<T: RosMessageProtocol>: RosTopicSubscribeProtocol {
     let id: String?
     let op: RosTopicOperation
     let topic: String
     let messageType: String
     let throttelRate: Int?
+
+    typealias Response = T
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -32,22 +34,22 @@ struct RosTopicSubscribe: RosTopicProtocol {
     }
 
     func isEqual(to message: String) -> Bool {
-        guard let rosTopic = Self.decodeMessage(from: message),
+        guard let rosTopic = decodeMessage(from: message),
               rosTopic.topic == topic else {
             return false
         }
 
-        if (rosTopic.id != id) {
+        if let id = id, rosTopic.id != id {
             return false
         }
 
         return true
     }
 
-    static func decodeMessage(from jsonString: String) -> RosTopicSubscribe? {
+    func decodeMessage(from jsonString: String) -> RosTopicPublish<Response>? {
         guard let jsonData = jsonString.data(using: .utf8) else {
             return nil
         }
-        return try? JSONDecoder().decode(RosTopicSubscribe.self, from: jsonData)
+        return try? JSONDecoder().decode(RosTopicPublish<Response>.self, from: jsonData)
     }
 }

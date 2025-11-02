@@ -7,6 +7,12 @@
 
 import Foundation
 
+protocol RosTopicSubscribeProtocol: RosTopicProtocol {
+    associatedtype Response: RosMessageProtocol
+}
+
+protocol RosTopicPublishProtocol: RosTopicProtocol {}
+
 protocol RosTopicProtocol: Codable {
     var op: RosTopicOperation { get }
     var id: String? { get }
