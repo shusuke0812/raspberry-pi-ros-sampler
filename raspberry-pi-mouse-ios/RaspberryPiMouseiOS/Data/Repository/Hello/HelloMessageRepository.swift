@@ -13,7 +13,7 @@ protocol HelloMessageRepositoryProtocol {
 
 class HelloMessageRepository: HelloMessageRepositoryProtocol {
     func subscribeHelloMessage(onMessage: @escaping (String) -> Void) {
-        let topic = RosTopicSubscribe(topic: "/hello", messageType: "std_msgs/String")
+        let topic = RosTopicSubscribe<StringMessage>(topic: "/hello", messageType: "std_msgs/String")
         RosBridgeClient.shared.subscribe(topic: topic) { message in
             onMessage(message)
         }
