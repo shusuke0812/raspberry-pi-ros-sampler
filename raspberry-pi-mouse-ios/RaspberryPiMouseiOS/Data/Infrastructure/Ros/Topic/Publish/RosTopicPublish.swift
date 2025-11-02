@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// [Publish Protocol](https://github.com/RobotWebTools/rosbridge_suite/blob/ros2/ROSBRIDGE_PROTOCOL.md#333-publish--publish-)
 struct RosTopicPublish<T: RosMessageProtocol>: RosTopicPublishProtocol {
     let id: String?
     let op: RosTopicOperation
