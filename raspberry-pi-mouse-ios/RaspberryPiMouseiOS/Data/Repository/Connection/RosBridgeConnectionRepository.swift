@@ -14,15 +14,21 @@ protocol RosBridgeConnectionRepositoryProtocol {
 }
 
 class RosBridgeConnectionRepository: RosBridgeConnectionRepositoryProtocol {
+    private let rosBridgeClient: RosBridgeConnectionProtocol
+
+    init(rosBridgeClient: RosBridgeConnectionProtocol = RosBridgeClient.shared) {
+        self.rosBridgeClient = rosBridgeClient
+    }
+
     func connect(ipAddress: String) {
-        RosBridgeClient.shared.connect(ipAddress: ipAddress)
+        rosBridgeClient.connect(ipAddress: ipAddress)
     }
 
     func disconnect() {
-        RosBridgeClient.shared.disconnect()
+        rosBridgeClient.disconnect()
     }
 
     func observeConnectionState() -> AsyncStream<WebSocketConnectionState> {
-        return RosBridgeClient.shared.observeConnectionState()
+        return rosBridgeClient.observeConnectionState()
     }
 }
