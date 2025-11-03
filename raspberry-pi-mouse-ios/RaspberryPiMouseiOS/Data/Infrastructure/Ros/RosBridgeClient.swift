@@ -16,7 +16,7 @@ protocol RosBridgeConnectionProtocol {
 }
 
 protocol RosBridgeSubscriptionProtocol {
-    func subscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (String) -> Void)
+    func subscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (Result<RosTopicPublish<T>, RosTopicError>) -> Void)
 }
 
 class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtocol {
@@ -43,7 +43,7 @@ class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtoco
 
     // MARK: - Publish / Subscribe
 
-    func subscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (String) -> Void) {
+    func subscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (Result<RosTopicPublish<T>, RosTopicError>) -> Void) {
         guard let topicJsonString = topic.toJsonString(), topic.op == .subscribe else {
             assertionFailure()
             return
@@ -52,8 +52,13 @@ class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtoco
         Task {
             try? await websocketClient.send(text: topicJsonString)
             for try await message in websocketClient.messages {
-                if topic.isEqual(to: message) {
-                    onMessage(message)
+                do {
+                    let receivedTopic = try topic.decodeMessage(from: message)
+                    if topic.isEqual(to: receivedTopic) {
+                        onMessage(.success(receivedTopic))
+                    }
+                } catch {
+                    onMessage(.failure(error as! RosTopicError))
                 }
             }
         }
