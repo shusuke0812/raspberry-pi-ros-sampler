@@ -12,9 +12,15 @@ protocol HelloMessageRepositoryProtocol {
 }
 
 class HelloMessageRepository: HelloMessageRepositoryProtocol {
+    private let rosBridgeClient: RosBridgeSubscriptionProtocol
+
+    init(rosBridgeClient: RosBridgeSubscriptionProtocol = RosBridgeClient.shared) {
+        self.rosBridgeClient = rosBridgeClient
+    }
+
     func subscribeHelloMessage(onMessage: @escaping (String) -> Void) {
         let topic = RosTopicSubscribe<StringMessage>(topic: "/hello", messageType: "std_msgs/String")
-        RosBridgeClient.shared.subscribe(topic: topic) { message in
+        rosBridgeClient.subscribe(topic: topic) { message in
             onMessage(message)
         }
     }
