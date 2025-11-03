@@ -8,12 +8,31 @@
 import Foundation
 
 protocol TopicMonitorScreenViewModelProtocol: ObservableObject {
-    var messages: [String] { get }
+    var uiState: TopicMonitorScreenViewModel.UiState { get }
     func subscribeHelloMessage()
 }
 
 class TopicMonitorScreenViewModel: TopicMonitorScreenViewModelProtocol {
-    @Published private(set) var messages: [String] = []
+    @Published private(set) var uiState: UiState = .standby
+    private var messages: [String] = []
+
+    enum UiState {
+        case standby
+        case loading
+        case success([String])
+        case failure(RosTopicError)
+
+        var title: String {
+            switch self {
+            case .standby:
+                return "Not found messages"
+            case .loading, .success:
+                return ""
+            case .failure(let error):
+                return error.description
+            }
+        }
+    }
 
     private let helloMessageRepository: HelloMessageRepositoryProtocol
 
@@ -22,10 +41,17 @@ class TopicMonitorScreenViewModel: TopicMonitorScreenViewModelProtocol {
     }
 
     func subscribeHelloMessage() {
-        helloMessageRepository.subscribeHelloMessage { [weak self] message in
+        self.uiState = .loading
+        helloMessageRepository.subscribeHelloMessage { [weak self] result in
             guard let self else { return }
-            Task { @MainActor in
-                self.messages.insert("\(self.messages.count)." + message, at: 0)
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let hello):
+                    self.messages.insert("\(self.messages.count)." + hello.message.data, at: 0)
+                    self.uiState = .success(self.messages)
+                case .failure(let error):
+                    self.uiState = .failure(error)
+                }
             }
         }
     }
