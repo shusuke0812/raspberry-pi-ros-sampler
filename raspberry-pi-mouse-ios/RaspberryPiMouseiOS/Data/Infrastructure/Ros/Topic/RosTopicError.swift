@@ -8,5 +8,6 @@
 import Foundation
 
 enum RosTopicError: Error {
-    case failedDecodeMessageToRosPublish
+    case failedConvertStringToData
+    case failedDecodeMessageToRosPublish(reason: Error)
 }
