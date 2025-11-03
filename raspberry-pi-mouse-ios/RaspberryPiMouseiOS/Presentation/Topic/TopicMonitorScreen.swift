@@ -14,16 +14,22 @@ struct TopicMonitorScreen<ViewModel: TopicMonitorScreenViewModelProtocol>: View 
 
     var body: some View {
         VStack(spacing: 20) {
-            if (viewModel.messages.isEmpty) {
+            switch viewModel.uiState {
+            case .standby, .failure:
                 Spacer()
-                Text("Not found messages")
+                Text(viewModel.uiState.title)
                     .fontWeight(.bold)
                     .foregroundColor(.gray)
                 Spacer()
-            } else {
+            case .loading:
+                Spacer()
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle())
+                Spacer()
+            case .success(let messages):
                 ScrollView {
                     VStack(alignment: .leading, spacing: 10) {
-                        ForEach(Array(viewModel.messages.enumerated()), id: \.offset) { _, message in
+                        ForEach(Array(messages.enumerated()), id: \.offset) { _, message in
                             Text("\(message)")
                                 .padding(.horizontal)
                                 .padding(.vertical, 8)
