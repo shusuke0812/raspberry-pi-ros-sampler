@@ -33,23 +33,25 @@ struct RosTopicSubscribe<T: RosMessageProtocol>: RosTopicSubscribeProtocol {
         self.throttelRate = throttelRate
     }
 
-    func isEqual(to message: String) -> Bool {
-        guard let rosTopic = decodeMessage(from: message),
-              rosTopic.topic == topic else {
+    func isEqual(to receivedTopic: RosTopicPublish<Response>) -> Bool {
+        if (receivedTopic.topic != topic) {
             return false
         }
-
-        if let id = id, rosTopic.id != id {
+        if let id = id, receivedTopic.id != id {
             return false
         }
-
         return true
     }
 
-    func decodeMessage(from jsonString: String) -> RosTopicPublish<Response>? {
+    func decodeMessage(from jsonString: String) throws -> RosTopicPublish<Response> {
         guard let jsonData = jsonString.data(using: .utf8) else {
-            return nil
+            throw RosTopicError.failedConvertStringToData
         }
-        return try? JSONDecoder().decode(RosTopicPublish<Response>.self, from: jsonData)
+        do {
+            let result = try JSONDecoder().decode(RosTopicPublish<Response>.self, from: jsonData)
+            return result
+        } catch {
+            throw RosTopicError.failedDecodeMessageToRosPublish(reason: error)
+        }
     }
 }
