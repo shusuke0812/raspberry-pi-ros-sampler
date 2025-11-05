@@ -34,15 +34,15 @@ class TopicMonitorScreenViewModel: TopicMonitorScreenViewModelProtocol {
         }
     }
 
-    private let helloMessageRepository: HelloMessageRepositoryProtocol
+    private let helloTopicRepository: HelloTopicRepositoryProtocol
 
-    init(helloMessageRepository: HelloMessageRepositoryProtocol = HelloMessageRepository()) {
-        self.helloMessageRepository = helloMessageRepository
+    init(helloTopicRepository: HelloTopicRepositoryProtocol = HelloTopicRepository()) {
+        self.helloTopicRepository = helloTopicRepository
     }
 
     func subscribeHelloMessage() {
         self.uiState = .loading
-        helloMessageRepository.subscribeHelloMessage { [weak self] result in
+        helloTopicRepository.subscribeHelloMessage { [weak self] result in
             guard let self else { return }
             DispatchQueue.main.async {
                 switch result {

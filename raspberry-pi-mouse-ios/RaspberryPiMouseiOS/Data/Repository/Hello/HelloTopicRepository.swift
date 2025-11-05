@@ -1,5 +1,5 @@
 //
-//  HelloMessageRepository.swift
+//  HelloTopicRepository.swift
 //  RaspberryPiMouseiOS
 //
 //  Created by Shusuke Ota on 2025/11/2.
@@ -7,18 +7,18 @@
 
 import Foundation
 
-protocol HelloMessageRepositoryProtocol {
-    func subscribeHelloMessage(onMessage: @escaping (Result<HelloResponse, RosTopicError>) -> Void)
+protocol HelloTopicRepositoryProtocol {
+    func subscribeHelloMessage(onMessage: @escaping (Result<HelloTopicResponse, RosTopicError>) -> Void)
 }
 
-class HelloMessageRepository: HelloMessageRepositoryProtocol {
+class HelloTopicRepository: HelloTopicRepositoryProtocol {
     private let rosBridgeClient: RosBridgeSubscriptionProtocol
 
     init(rosBridgeClient: RosBridgeSubscriptionProtocol = RosBridgeClient.shared) {
         self.rosBridgeClient = rosBridgeClient
     }
 
-    func subscribeHelloMessage(onMessage: @escaping (Result<HelloResponse, RosTopicError>) -> Void) {
+    func subscribeHelloMessage(onMessage: @escaping (Result<HelloTopicResponse, RosTopicError>) -> Void) {
         let topic = RosTopicSubscribe<StringMessage>(topic: "/hello", messageType: "std_msgs/String")
         rosBridgeClient.subscribe(topic: topic) { result in
             switch result {
