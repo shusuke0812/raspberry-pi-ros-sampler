@@ -20,7 +20,7 @@ class HelloTopicRepository: HelloTopicRepositoryProtocol {
 
     func subscribeHelloMessage(onMessage: @escaping (Result<HelloTopicResponse, RosTopicError>) -> Void) {
         let topic = RosTopicSubscribe<StringMessage>(topic: "/hello", messageType: "std_msgs/String")
-        rosBridgeClient.subscribe(topic: topic) { result in
+        rosBridgeClient.startSubscribe(topic: topic) { result in
             switch result {
             case .success(let message):
                 onMessage(.success(message))

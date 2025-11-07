@@ -16,13 +16,15 @@ protocol RosBridgeConnectionProtocol {
 }
 
 protocol RosBridgeSubscriptionProtocol {
-    func subscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (Result<RosTopicPublish<T>, RosTopicError>) -> Void)
+    func startSubscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (Result<RosTopicPublish<T>, RosTopicError>) -> Void)
 }
 
 class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtocol {
     static let shared = RosBridgeClient()
     private let websocketClient: WebSocketClient
-    
+
+    private var subscribers: [any RosTopicSubscribeProtocol] = []
+
     private init() {
         websocketClient = WebSocketClient()
     }
@@ -43,7 +45,18 @@ class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtoco
 
     // MARK: - Publish / Subscribe
 
-    func subscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (Result<RosTopicPublish<T>, RosTopicError>) -> Void) {
+    func startSubscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (Result<RosTopicPublish<T>, RosTopicError>) -> Void) {
+        do {
+            try registerSubscriber(topic: topic)
+        } catch {
+            onMessage(.failure(error as! RosTopicError))
+            return
+        }
+
+        subscribe(topic: topic, onMessage: onMessage)
+    }
+
+    private func subscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (Result<RosTopicPublish<T>, RosTopicError>) -> Void) {
         guard let topicJsonString = topic.toJsonString(), topic.op == .subscribe else {
             assertionFailure()
             return
@@ -62,5 +75,16 @@ class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtoco
                 }
             }
         }
+    }
+
+    private func registerSubscriber<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>) throws {
+        if (subscribers.contains { $0.topic == topic.topic }) {
+            throw RosTopicError.alreadySubscribed
+        }
+        subscribers.append(topic)
+    }
+
+    private func deregisterSubscriber<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>) {
+        subscribers.removeAll(where: {$0.topic == topic.topic})
     }
 }
