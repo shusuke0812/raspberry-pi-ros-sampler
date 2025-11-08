@@ -17,7 +17,7 @@ protocol RosBridgeConnectionProtocol {
 
 protocol RosBridgeSubscriptionProtocol {
     func startSubscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (Result<RosTopicPublish<T>, RosTopicError>) -> Void)
-    func endSubscribere<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>)
+    func endSubscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>)
 }
 
 class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtocol {
@@ -57,7 +57,7 @@ class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtoco
         subscribe(topic: topic, onMessage: onMessage)
     }
 
-    func endSubscribere<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>) {
+    func endSubscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>) {
         let result = deregisterSubscriber(topic: topic)
         if (result) {
             let topic = RosTopicUnsubscribe(id: topic.id, topic: topic.topic)

@@ -33,6 +33,6 @@ class HelloTopicRepository: HelloTopicRepositoryProtocol {
 
     func unsubscribeHelloMessage() {
         let topic = RosTopicSubscribe<StringMessage>(topic: "/hello", messageType: "std_msgs/String")
-        rosBridgeClient.endSubscribere(topic: topic)
+        rosBridgeClient.endSubscribe(topic: topic)
     }
 }
