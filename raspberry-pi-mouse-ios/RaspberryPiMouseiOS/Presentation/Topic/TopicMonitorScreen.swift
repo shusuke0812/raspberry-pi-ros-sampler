@@ -51,13 +51,23 @@ struct TopicMonitorScreen<ViewModel: TopicMonitorScreenViewModelProtocol>: View 
                     }
             }
 
-            Button(action: {
-                viewModel.subscribeHelloMessage()
-            }) {
-                Text("Start Hello Subscribe")
-                    .frame(width: screenWidth.width * 0.65)
+            HStack(spacing: 16) {
+                Button(action: {
+                    viewModel.subscribeHelloMessage()
+                }) {
+                    Text("Start \nHello Subscribe")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+
+                Button(action: {
+                    viewModel.unsubscribeHelloMessage()
+                }) {
+                    Text("End \nHello Subscribe")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
             }
-            .buttonStyle(.borderedProminent)
             .padding(.bottom, 20)
         }
         .padding()
