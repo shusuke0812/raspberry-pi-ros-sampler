@@ -9,6 +9,7 @@ import Foundation
 
 protocol HelloTopicRepositoryProtocol {
     func subscribeHelloMessage(onMessage: @escaping (Result<HelloTopicResponse, RosTopicError>) -> Void)
+    func unsubscribeHelloMessage()
 }
 
 class HelloTopicRepository: HelloTopicRepositoryProtocol {
@@ -28,5 +29,10 @@ class HelloTopicRepository: HelloTopicRepositoryProtocol {
                 onMessage(.failure(error))
             }
         }
+    }
+
+    func unsubscribeHelloMessage() {
+        let topic = RosTopicSubscribe<StringMessage>(topic: "/hello", messageType: "std_msgs/String")
+        rosBridgeClient.endSubscribe(topic: topic)
     }
 }

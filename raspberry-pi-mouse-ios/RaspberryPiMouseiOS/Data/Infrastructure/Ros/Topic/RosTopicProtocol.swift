@@ -7,6 +7,8 @@
 
 import Foundation
 
+protocol RosTopicUnsubscribeProtocol: RosTopicProtocol {}
+
 protocol RosTopicSubscribeProtocol: RosTopicProtocol {
     associatedtype Response: RosMessageProtocol
 }

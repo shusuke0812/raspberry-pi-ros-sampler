@@ -11,6 +11,7 @@ protocol TopicMonitorScreenViewModelProtocol: ObservableObject {
     var uiState: TopicMonitorScreenViewModel.UiState { get }
     var isErrorPresented: Bool { get set }
     func subscribeHelloMessage()
+    func unsubscribeHelloMessage()
     func hideErrorAlert()
 }
 
@@ -65,5 +66,10 @@ class TopicMonitorScreenViewModel: TopicMonitorScreenViewModelProtocol {
                 }
             }
         }
+    }
+
+    func unsubscribeHelloMessage() {
+        messages.removeAll()
+        helloTopicRepository.unsubscribeHelloMessage()
     }
 }
