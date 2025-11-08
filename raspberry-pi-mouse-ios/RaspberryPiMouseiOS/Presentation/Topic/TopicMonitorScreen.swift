@@ -15,7 +15,7 @@ struct TopicMonitorScreen<ViewModel: TopicMonitorScreenViewModelProtocol>: View 
     var body: some View {
         VStack(spacing: 20) {
             switch viewModel.uiState {
-            case .standby, .failure:
+            case .standby:
                 Spacer()
                 Text(viewModel.uiState.title)
                     .fontWeight(.bold)
@@ -40,6 +40,15 @@ struct TopicMonitorScreen<ViewModel: TopicMonitorScreenViewModelProtocol>: View 
                     }
                     .padding()
                 }
+            case .failure(let error):
+                Spacer()
+                    .alert("エラー", isPresented: $viewModel.isErrorPresented) {
+                        Button("OK") {
+                            viewModel.hideErrorAlert()
+                        }
+                    } message: {
+                        Text(error.description)
+                    }
             }
 
             Button(action: {

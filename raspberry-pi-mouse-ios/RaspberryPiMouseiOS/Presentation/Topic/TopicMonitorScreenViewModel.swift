@@ -9,11 +9,14 @@ import Foundation
 
 protocol TopicMonitorScreenViewModelProtocol: ObservableObject {
     var uiState: TopicMonitorScreenViewModel.UiState { get }
+    var isErrorPresented: Bool { get set }
     func subscribeHelloMessage()
+    func hideErrorAlert()
 }
 
 class TopicMonitorScreenViewModel: TopicMonitorScreenViewModelProtocol {
     @Published private(set) var uiState: UiState = .standby
+    @Published var isErrorPresented = false
     private var messages: [String] = []
 
     enum UiState {
@@ -40,6 +43,13 @@ class TopicMonitorScreenViewModel: TopicMonitorScreenViewModelProtocol {
         self.helloTopicRepository = helloTopicRepository
     }
 
+    func hideErrorAlert() {
+        isErrorPresented = false
+        if messages.isEmpty {
+            uiState = .standby
+        }
+    }
+
     func subscribeHelloMessage() {
         self.uiState = .loading
         helloTopicRepository.subscribeHelloMessage { [weak self] result in
@@ -51,6 +61,7 @@ class TopicMonitorScreenViewModel: TopicMonitorScreenViewModelProtocol {
                     self.uiState = .success(self.messages)
                 case .failure(let error):
                     self.uiState = .failure(error)
+                    self.isErrorPresented = true
                 }
             }
         }

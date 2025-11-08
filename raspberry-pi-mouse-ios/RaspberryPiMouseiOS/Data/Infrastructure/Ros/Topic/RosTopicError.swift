@@ -8,11 +8,14 @@
 import Foundation
 
 enum RosTopicError: Error {
+    case alreadySubscribed
     case failedConvertStringToData
     case failedDecodeMessageToRosPublish(reason: Error)
 
     var description: String {
         switch self {
+        case .alreadySubscribed:
+            return "すでに購読済みのトピックです"
         case .failedConvertStringToData:
             return "メッセージをデータ型に変換できませんでした"
         case .failedDecodeMessageToRosPublish(let reason):
