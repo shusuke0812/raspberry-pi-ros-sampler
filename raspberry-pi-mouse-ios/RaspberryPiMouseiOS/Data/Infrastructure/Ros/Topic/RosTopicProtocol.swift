@@ -16,7 +16,7 @@ protocol RosTopicSubscribeProtocol: RosTopicProtocol {
 protocol RosTopicPublishHeaderProtocol: RosTopicProtocol {}
 
 protocol RosTopicProtocol: Codable {
-    var op: RosTopicOperation { get }
+    var op: RosBridgeMessageOperation { get }
     var id: String? { get }
     var topic: String { get }
     func toJsonString() -> String?

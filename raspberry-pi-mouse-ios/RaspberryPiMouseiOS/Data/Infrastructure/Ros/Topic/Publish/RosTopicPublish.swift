@@ -26,7 +26,7 @@ struct RosTopicPublish<T: RosMessageProtocol>: Codable {
         
         // header
         let id = try container.decodeIfPresent(String.self, forKey: .id)
-        let op = try container.decode(RosTopicOperation.self, forKey: .op)
+        let op = try container.decode(RosBridgeMessageOperation.self, forKey: .op)
         let topic = try container.decode(String.self, forKey: .topic)
         self.header = RosTopicPublishHeader(id: id, op: op, topic: topic)
         

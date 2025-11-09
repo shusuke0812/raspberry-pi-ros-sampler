@@ -9,6 +9,6 @@ import Foundation
 
 struct RosTopicPublishHeader: RosTopicPublishHeaderProtocol {
     let id: String?
-    let op: RosTopicOperation
+    let op: RosBridgeMessageOperation
     let topic: String
 }
