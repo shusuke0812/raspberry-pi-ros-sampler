@@ -22,4 +22,5 @@ Publish
 # 1秒間に1回Topicを発行する例
 # -r：Hz, 1秒間に送信する回数を指定
 $ ros2 topic pub /hello std_msgs/msg/String "data: 'Hello world'" -r 1
+$ ros2 topic pub /hello_signal std_msgs/msg/Int8 "data: 42" -r 1
 ```
