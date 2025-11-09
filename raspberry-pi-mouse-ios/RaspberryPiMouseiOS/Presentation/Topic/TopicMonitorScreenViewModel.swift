@@ -55,7 +55,7 @@ class TopicMonitorScreenViewModel: TopicMonitorScreenViewModelProtocol {
 
     func subscribeHelloMessage() {
         self.uiState = .loading
-        helloTopicRepository.subscribeHelloMessage { [weak self] result in
+        helloTopicRepository.subscribeHello { [weak self] result in
             guard let self else { return }
             DispatchQueue.main.async {
                 switch result {
@@ -72,7 +72,7 @@ class TopicMonitorScreenViewModel: TopicMonitorScreenViewModelProtocol {
 
     func unsubscribeHelloMessage() {
         messages.removeAll()
-        helloTopicRepository.unsubscribeHelloMessage()
+        helloTopicRepository.unsubscribeHello()
     }
 
     func subscribeHelloSignal() {

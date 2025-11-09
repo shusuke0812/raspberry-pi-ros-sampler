@@ -8,8 +8,8 @@
 import Foundation
 
 protocol HelloTopicRepositoryProtocol {
-    func subscribeHelloMessage(onMessage: @escaping (Result<HelloTopicResponse, RosTopicError>) -> Void)
-    func unsubscribeHelloMessage()
+    func subscribeHello(onMessage: @escaping (Result<HelloTopicResponse, RosTopicError>) -> Void)
+    func unsubscribeHello()
     func subscribeHelloSignal(onMessage: @escaping (Result<HelloSignalTopicResponse, RosTopicError>) -> Void)
     func unsubscribeHelloSignal()
 }
@@ -21,7 +21,7 @@ class HelloTopicRepository: HelloTopicRepositoryProtocol {
         self.rosBridgeClient = rosBridgeClient
     }
 
-    func subscribeHelloMessage(onMessage: @escaping (Result<HelloTopicResponse, RosTopicError>) -> Void) {
+    func subscribeHello(onMessage: @escaping (Result<HelloTopicResponse, RosTopicError>) -> Void) {
         let topic = RosTopicSubscribe<StringMessage>(topic: "/hello", messageType: "std_msgs/msg/String")
         rosBridgeClient.startSubscribe(topic: topic) { result in
             switch result {
@@ -33,7 +33,7 @@ class HelloTopicRepository: HelloTopicRepositoryProtocol {
         }
     }
 
-    func unsubscribeHelloMessage() {
+    func unsubscribeHello() {
         let topic = RosTopicSubscribe<StringMessage>(topic: "/hello", messageType: "std_msgs/msg/String")
         rosBridgeClient.endSubscribe(topic: topic)
     }
