@@ -8,3 +8,4 @@
 import Foundation
 
 typealias HelloTopicResponse = RosTopicPublish<StringMessage>
+typealias HelloSignalTopicResponse = RosTopicPublish<Int8Message>
