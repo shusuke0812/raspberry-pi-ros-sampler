@@ -33,11 +33,17 @@ struct RosTopicSubscribe<T: RosMessageProtocol>: RosTopicSubscribeProtocol {
         self.throttelRate = throttelRate
     }
 
-    func isEqual(to receivedTopic: RosTopicPublish<Response>) -> Bool {
-        if (receivedTopic.topic != topic) {
+    func isEqual(to message: String) -> Bool {
+        guard let jsonData = message.data(using: .utf8),
+              let topiHeader = try? JSONDecoder().decode(RosTopicPublishHeader.self, from: jsonData)
+        else {
             return false
         }
-        if let id = id, receivedTopic.id != id {
+
+        if (topiHeader.topic != topic) {
+            return false
+        }
+        if let id = id, topiHeader.id != id {
             return false
         }
         return true

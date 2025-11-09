@@ -51,11 +51,22 @@ struct TopicMonitorScreen<ViewModel: TopicMonitorScreenViewModelProtocol>: View 
                     }
             }
 
+            FooterView(viewModel: viewModel)
+        }
+        .padding()
+    }
+}
+
+private struct FooterView: View {
+    let viewModel: any TopicMonitorScreenViewModelProtocol
+
+    var body: some View {
+        VStack {
             HStack(spacing: 16) {
                 Button(action: {
                     viewModel.subscribeHelloMessage()
                 }) {
-                    Text("Start \nHello Subscribe")
+                    Text("Start Hello")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
@@ -63,14 +74,30 @@ struct TopicMonitorScreen<ViewModel: TopicMonitorScreenViewModelProtocol>: View 
                 Button(action: {
                     viewModel.unsubscribeHelloMessage()
                 }) {
-                    Text("End \nHello Subscribe")
+                    Text("End Hello")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
             }
-            .padding(.bottom, 20)
+            HStack(spacing: 16) {
+                Button(action: {
+                    viewModel.subscribeHelloSignal()
+                }) {
+                    Text("Start Hello Signal")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+
+                Button(action: {
+                    viewModel.unsubscribeHelloSignal()
+                }) {
+                    Text("End Hello Signal")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+            }
         }
-        .padding()
+        .padding(.bottom, 20)
     }
 }
 
