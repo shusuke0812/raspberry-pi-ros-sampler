@@ -13,7 +13,7 @@ protocol RosTopicSubscribeProtocol: RosTopicProtocol {
     associatedtype Response: RosMessageProtocol
 }
 
-protocol RosTopicPublishProtocol: RosTopicProtocol {}
+protocol RosTopicPublishHeaderProtocol: RosTopicProtocol {}
 
 protocol RosTopicProtocol: Codable {
     var op: RosTopicOperation { get }
