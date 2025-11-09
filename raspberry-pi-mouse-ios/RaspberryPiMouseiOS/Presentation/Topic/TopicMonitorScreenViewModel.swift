@@ -12,6 +12,8 @@ protocol TopicMonitorScreenViewModelProtocol: ObservableObject {
     var isErrorPresented: Bool { get set }
     func subscribeHelloMessage()
     func unsubscribeHelloMessage()
+    func subscribeHelloSignal()
+    func unsubscribeHelloSignal()
     func hideErrorAlert()
 }
 
@@ -71,5 +73,27 @@ class TopicMonitorScreenViewModel: TopicMonitorScreenViewModelProtocol {
     func unsubscribeHelloMessage() {
         messages.removeAll()
         helloTopicRepository.unsubscribeHelloMessage()
+    }
+
+    func subscribeHelloSignal() {
+        self.uiState = .loading
+        helloTopicRepository.subscribeHelloSignal { [weak self] result in
+            guard let self else { return }
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let helloSignal):
+                    self.messages.insert("\(self.messages.count)." + "\(helloSignal.message.data)", at: 0)
+                    self.uiState = .success(self.messages)
+                case .failure(let error):
+                    self.uiState = .failure(error)
+                    self.isErrorPresented = true
+                }
+            }
+        }
+    }
+
+    func unsubscribeHelloSignal() {
+        messages.removeAll()
+        helloTopicRepository.unsubscribeHelloSignal()
     }
 }
