@@ -1,4 +1,4 @@
-# raspberry-pi-mouse-client
+# raspberry-pi-ros-sampler
 
 ## Raspberry Pi
 
