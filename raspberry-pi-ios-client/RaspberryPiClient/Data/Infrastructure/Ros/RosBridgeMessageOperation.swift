@@ -11,4 +11,6 @@ enum RosBridgeMessageOperation: String, Codable {
     case subscribe
     case publish
     case unsubscribe
+    case callService = "call_service"
+    case serviceResponse = "service_response"
 }
