@@ -13,25 +13,26 @@ protocol RosServiceProtocol: Codable {
     var service: String { get }
 }
 
+
 // MARK: - Request
 
 protocol RosCallServiceProtocol: RosServiceProtocol {
+    associatedtype Response: Decodable
     associatedtype A: RosCallServiceArgsProtocol
     var args: [A] { get }
     var fragmentSize: Int? { get }
     var compression: String? { get }
     var timeout: Double? { get }
+    func toJsonString() -> String?
 }
 
-protocol RosCallServiceArgsProtocol: Codable {
-    func toJsonString() -> String
-}
+protocol RosCallServiceArgsProtocol: Codable {}
 
-extension RosCallServiceArgsProtocol {
-    func toJsonString() -> String {
+extension RosCallServiceProtocol {
+    func toJsonString() -> String? {
         guard let jsonData = try? JSONEncoder().encode(self),
               let jsonString = String(data: jsonData, encoding: .utf8) else {
-            return ""
+            return nil
         }
         return jsonString
     }
@@ -39,9 +40,7 @@ extension RosCallServiceArgsProtocol {
 
 // MARK: - Response
 
-protocol RosServiceResponseProtocol: RosServiceProtocol {
-    associatedtype V: RosServiceResponseValuesProtocol
-    var values: [V] { get }
+protocol RosServiceResponseHeaderProtocol: RosServiceProtocol {
     var result: Bool { get }
 }
 

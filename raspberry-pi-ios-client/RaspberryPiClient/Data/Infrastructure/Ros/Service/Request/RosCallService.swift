@@ -7,13 +7,15 @@
 
 import Foundation
 
-struct RosCallService<T: RosCallServiceArgsProtocol>: RosCallServiceProtocol {
-    typealias A = T
+struct RosCallService<A: RosCallServiceArgsProtocol, V: RosServiceResponseValuesProtocol>: RosCallServiceProtocol {
+    typealias Response = RosServiceResponse<V>
+
+    typealias A = A
 
     let op: RosBridgeMessageOperation
     let id: String?
     let service: String
-    let args: [T]
+    let args: [A]
     let fragmentSize: Int?
     let compression: String?
     let timeout: TimeInterval?
@@ -22,7 +24,7 @@ struct RosCallService<T: RosCallServiceArgsProtocol>: RosCallServiceProtocol {
         op: RosBridgeMessageOperation = .callService,
         id: String? = nil,
         service: String,
-        args: [T] = [],
+        args: [A] = [],
         fragmentSize: Int? = nil,
         compression: String? = nil,
         timeout: TimeInterval? = nil
