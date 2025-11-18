@@ -79,6 +79,7 @@ final class WebSocketClient: NSObject {
                 }
             }
         } catch {
+            // Network errors, WebSocket connection errors
             messageContinuation?.finish(throwing: error)
         }
     }
