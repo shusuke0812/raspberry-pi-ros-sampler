@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol RosServiceProtocol: Codable {
+protocol RosServiceHeaderProtocol: Codable {
     var op: RosBridgeMessageOperation { get }
     var id: String? { get }
     var service: String { get }
@@ -16,14 +16,16 @@ protocol RosServiceProtocol: Codable {
 
 // MARK: - Request
 
-protocol RosCallServiceProtocol: RosServiceProtocol {
+protocol RosCallServiceProtocol: Encodable {
     associatedtype Response: Decodable
     associatedtype A: RosCallServiceArgsProtocol
+    var header: any RosServiceHeaderProtocol { get }
     var args: [A] { get }
     var fragmentSize: Int? { get }
     var compression: String? { get }
     var timeout: Double? { get }
     func toJsonString() -> String?
+    func isEqual(to message: String) -> Bool
 }
 
 protocol RosCallServiceArgsProtocol: Codable {}
@@ -40,7 +42,7 @@ extension RosCallServiceProtocol {
 
 // MARK: - Response
 
-protocol RosServiceResponseHeaderProtocol: RosServiceProtocol {
+protocol RosServiceResponseHeaderProtocol: RosServiceHeaderProtocol {
     var result: Bool { get }
 }
 
