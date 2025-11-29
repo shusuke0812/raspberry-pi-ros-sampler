@@ -10,4 +10,5 @@ import Foundation
 enum RosServiceError: Error {
     case alreadyCalling
     case failedReceiveMessage(reason: Error)
+    case failedDecodeMessage(reason: Error)
 }
