@@ -8,9 +8,9 @@
 import Foundation
 
 struct RosCallService<A: RosCallServiceArgsProtocol, V: RosServiceResponseValuesProtocol>: RosCallServiceProtocol {
-    typealias Response = RosServiceResponse<V>
+    typealias Response = V
 
-    typealias A = A
+    typealias Args = A
 
     let header: any RosServiceHeaderProtocol
     let args: [A]
