@@ -8,6 +8,7 @@
 import Foundation
 
 protocol CallServiceViewModelProtocol: ObservableObject {
+    var uiState: CallServiceViewModel.UiState { get }
     func callSpawn()
 }
 
@@ -19,6 +20,19 @@ class CallServiceViewModel: CallServiceViewModelProtocol {
         case loading
         case success(String)
         case failure(RosServiceError)
+
+        var title: String {
+            switch self {
+            case .standby:
+                return "Standby"
+            case .loading:
+                return ""
+            case .success(let message):
+                return "Success\n\(message)"
+            case .failure(let error):
+                return error.description
+            }
+        }
     }
 
     private let turtlesimRepository: TurtlesimRepositoryProtocol
