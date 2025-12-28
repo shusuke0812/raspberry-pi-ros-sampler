@@ -17,10 +17,10 @@ protocol RosServiceHeaderProtocol: Codable {
 // MARK: - Request
 
 protocol RosCallServiceProtocol: Encodable {
-    associatedtype Response: RosServiceResponseValuesProtocol
-    associatedtype Args: RosCallServiceArgsProtocol
+    associatedtype Response: RosServiceResponseProtocol
+    associatedtype Arg: RosCallServiceArgsProtocol
     var header: any RosServiceHeaderProtocol { get }
-    var args: [Args] { get }
+    var arg: Arg? { get }
     var fragmentSize: Int? { get }
     var compression: String? { get }
     var timeout: Double? { get }
@@ -48,4 +48,4 @@ protocol RosServiceResponseHeaderProtocol: RosServiceHeaderProtocol {
 
 protocol RosServiceResponseValuesProtocol: Codable {}
 
-
+protocol RosServiceResponseProtocol: Decodable {}

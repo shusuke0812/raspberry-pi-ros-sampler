@@ -7,11 +7,11 @@
 
 import Foundation
 
-struct RosServiceResponse<T: RosServiceResponseValuesProtocol>: Decodable {
+struct RosServiceResponse<T: RosServiceResponseValuesProtocol>: RosServiceResponseProtocol {
     let header: RosServiceResponseHeader
-    let values: [T]
+    let values: T
 
-    init(id: String? = nil, service: String, values: [T], result: Bool) {
+    init(id: String? = nil, service: String, values: T, result: Bool) {
         self.header = RosServiceResponseHeader(
             op: RosBridgeMessageOperation.serviceResponse,
             id: id,
@@ -32,7 +32,7 @@ struct RosServiceResponse<T: RosServiceResponseValuesProtocol>: Decodable {
         self.header = .init(op: op, id: id, service: service, result: result)
 
         // values
-        self.values = try container.decode([T].self, forKey: .values)
+        self.values = try container.decode(T.self, forKey: .values)
     }
 
     enum CodingKeys: String, CodingKey {

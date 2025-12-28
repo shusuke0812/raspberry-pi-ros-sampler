@@ -8,12 +8,12 @@
 import Foundation
 
 struct RosCallService<A: RosCallServiceArgsProtocol, V: RosServiceResponseValuesProtocol>: RosCallServiceProtocol {
-    typealias Response = V
+    typealias Response = RosServiceResponse<V>
 
-    typealias Args = A
+    typealias Arg = A
 
     let header: any RosServiceHeaderProtocol
-    let args: [A]
+    let arg: A?
     let fragmentSize: Int?
     let compression: String?
     let timeout: TimeInterval?
@@ -22,7 +22,7 @@ struct RosCallService<A: RosCallServiceArgsProtocol, V: RosServiceResponseValues
         op: RosBridgeMessageOperation = .callService,
         id: String? = nil,
         service: String,
-        args: [A] = [],
+        arg: A? = nil,
         fragmentSize: Int? = nil,
         compression: String? = nil,
         timeout: TimeInterval? = nil
@@ -32,7 +32,7 @@ struct RosCallService<A: RosCallServiceArgsProtocol, V: RosServiceResponseValues
             id: id,
             service: service
         )
-        self.args = args
+        self.arg = arg
         self.fragmentSize = fragmentSize
         self.compression = compression
         self.timeout = timeout
@@ -54,8 +54,8 @@ struct RosCallService<A: RosCallServiceArgsProtocol, V: RosServiceResponseValues
         try container.encode(header.op, forKey: .op)
         try container.encodeIfPresent(header.id, forKey: .id)
         try container.encode(header.service, forKey: .service)
-        if !args.isEmpty {
-            try container.encode(args, forKey: .args)
+        if let arg = arg {
+            try container.encode(arg, forKey: .args)
         }
         if let fragmentSize = fragmentSize {
             try container.encode(fragmentSize, forKey: .fragmentSize)
