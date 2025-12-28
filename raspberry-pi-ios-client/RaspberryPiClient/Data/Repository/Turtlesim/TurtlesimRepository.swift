@@ -21,7 +21,7 @@ class TurtlesimRepository: TurtlesimRepositoryProtocol {
     func callSpawn(x: Float, y: Float, theta: Float) {
         let arg = TurtlesimServiceArgs(x: x, y: y, theta: theta, name: nil)
         let callService = RosCallService<TurtlesimServiceArgs, TurtlesimServiceResponse>(
-            service: "turtlesim/Spawn",
+            service: "/spawn",
             args: [arg]
         )
         rosBridgeClient.callService(service: callService) { result in
