@@ -8,7 +8,7 @@
 import Foundation
 
 protocol TurtlesimRepositoryProtocol {
-    func callSpawn(x: Float, y: Float, theta: Float)
+    func callSpawn(x: Float, y: Float, theta: Float, onMessage: @escaping (Result<Void, RosServiceError>) -> Void)
 }
 
 class TurtlesimRepository: TurtlesimRepositoryProtocol {
@@ -18,18 +18,18 @@ class TurtlesimRepository: TurtlesimRepositoryProtocol {
         self.rosBridgeClient = rosBridgeClient
     }
 
-    func callSpawn(x: Float, y: Float, theta: Float) {
+    func callSpawn(x: Float, y: Float, theta: Float, onMessage: @escaping (Result<Void, RosServiceError>) -> Void) {
         let arg = TurtlesimServiceArgs(x: x, y: y, theta: theta, name: nil)
         let callService = RosCallService<TurtlesimServiceArgs, TurtlesimServiceResponse>(
             service: "/spawn",
-            args: [arg]
+            arg: arg
         )
         rosBridgeClient.callService(service: callService) { result in
             switch result {
             case .success(let response):
-                print(response)
+                onMessage(.success(()))
             case .failure(let error):
-                print(error)
+                onMessage(.failure(error))
             }
         }
     }

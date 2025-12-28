@@ -42,6 +42,15 @@ class CallServiceViewModel: CallServiceViewModelProtocol {
     }
 
     func callSpawn() {
-        turtlesimRepository.callSpawn(x: 2.0, y: 2.0, theta: 0.2)
+        turtlesimRepository.callSpawn(x: 2.0, y: 2.0, theta: 0.2) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    self.uiState = .success("")
+                case .failure(let error):
+                    self.uiState = .failure(error)
+                }
+            }
+        }
     }
 }
