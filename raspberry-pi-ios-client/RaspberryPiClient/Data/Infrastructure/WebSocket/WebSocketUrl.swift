@@ -19,6 +19,6 @@ struct WebSocketUrl {
 
     var url: URL {
         let path = sheme + "://" + ipAddress + ":\(port)"
-        return URL(string: path)!
+        return URL(string: path)! // TODO: pathに不正な文字列が入ったらクラッシュするのでバリデートする
     }
 }
