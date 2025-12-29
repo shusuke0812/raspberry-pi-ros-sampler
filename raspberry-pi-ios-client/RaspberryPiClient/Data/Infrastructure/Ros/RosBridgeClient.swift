@@ -15,16 +15,13 @@ protocol RosBridgeConnectionProtocol {
     func observeConnectionState() -> AsyncStream<WebSocketConnectionState>
 }
 
-protocol RosBridgeSubscriptionProtocol {
+protocol RosBridgeMessageProtocol {
     func startSubscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (Result<RosTopicPublish<T>, RosTopicError>) -> Void)
     func endSubscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>)
-}
-
-protocol RosBridgeServiceProtocol {
     func callService<T: RosCallServiceProtocol>(service: T, onMessage: @escaping (Result<T.Response, RosServiceError>) -> Void)
 }
 
-class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtocol, RosBridgeServiceProtocol {
+class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtocol {
     static let shared = RosBridgeClient()
     private let websocketClient: WebSocketClient
 

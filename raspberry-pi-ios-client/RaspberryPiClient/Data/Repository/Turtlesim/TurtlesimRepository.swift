@@ -13,9 +13,9 @@ protocol TurtlesimRepositoryProtocol {
 }
 
 class TurtlesimRepository: TurtlesimRepositoryProtocol {
-    private let rosBridgeClient: RosBridgeServiceProtocol
+    private let rosBridgeClient: RosBridgeMessageProtocol
 
-    init(rosBridgeClient: RosBridgeServiceProtocol = RosBridgeClient.shared) {
+    init(rosBridgeClient: RosBridgeMessageProtocol = RosBridgeClient.shared) {
         self.rosBridgeClient = rosBridgeClient
     }
 

@@ -15,9 +15,9 @@ protocol HelloTopicRepositoryProtocol {
 }
 
 class HelloTopicRepository: HelloTopicRepositoryProtocol {
-    private let rosBridgeClient: RosBridgeSubscriptionProtocol
+    private let rosBridgeClient: RosBridgeMessageProtocol
 
-    init(rosBridgeClient: RosBridgeSubscriptionProtocol = RosBridgeClient.shared) {
+    init(rosBridgeClient: RosBridgeMessageProtocol = RosBridgeClient.shared) {
         self.rosBridgeClient = rosBridgeClient
     }
 
