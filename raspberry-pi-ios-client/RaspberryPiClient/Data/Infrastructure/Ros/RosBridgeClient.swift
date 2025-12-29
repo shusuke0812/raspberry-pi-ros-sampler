@@ -16,6 +16,7 @@ protocol RosBridgeConnectionProtocol {
 }
 
 protocol RosBridgeMessageProtocol {
+    func publish<T: RosMessageProtocol>(topic: RosTopicPublish<T>)
     func startSubscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (Result<RosTopicPublish<T>, RosTopicError>) -> Void)
     func endSubscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>)
     func callService<T: RosCallServiceProtocol>(service: T, onMessage: @escaping (Result<T.Response, RosServiceError>) -> Void)
@@ -51,7 +52,24 @@ class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtocol {
         return websocketClient.connectionStates
     }
 
-    // MARK: - Publish / Subscribe
+    // MARK: - Publish
+
+    func publish<T: RosMessageProtocol>(topic: RosTopicPublish<T>) {
+        guard topic.header.op == .publish else {
+            return
+        }
+        guard let jsonData = try? JSONEncoder().encode(topic),
+              let topicJsonString = String(data: jsonData, encoding: .utf8) else {
+            assertionFailure("Failed to encode RosTopicPublish to JSON string")
+            return
+        }
+        
+        Task {
+            try? await websocketClient.send(text: topicJsonString)
+        }
+    }
+
+    // MARK: - Subscribe
 
     func startSubscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (Result<RosTopicPublish<T>, RosTopicError>) -> Void) {
         if topicMessageHandlers[topic.topic] != nil {
