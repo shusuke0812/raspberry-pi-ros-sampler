@@ -12,18 +12,7 @@ struct CallServiceScreen<ViewModel: CallServiceViewModelProtocol>: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            switch viewModel.uiState {
-            case .standby, .failure:
-                BodyView(viewModel: viewModel)
-            case .loading:
-                Spacer()
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle())
-                Spacer()
-            case .success:
-                BodyView(viewModel: viewModel)
-            }
-
+            BodyView(viewModel: viewModel)
             FooterView(viewModel: viewModel)
                 .padding()
         }
@@ -35,10 +24,16 @@ private struct BodyView: View {
 
     var body: some View {
         VStack {
-            Text(viewModel.uiState.title)
-                .fontWeight(.bold)
-                .foregroundColor(.gray)
-                .padding()
+            if (viewModel.uiState.isShowProgressView) {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle())
+                    .padding()
+            } else {
+                Text(viewModel.uiState.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.gray)
+                    .padding()
+            }
             Spacer()
             JoystickView()
                 .overlay(

@@ -42,6 +42,15 @@ class CallServiceViewModel: CallServiceViewModelProtocol {
                 return false
             }
         }
+
+        var isShowProgressView: Bool {
+            switch self {
+            case .loading:
+                return true
+            case .standby, .success, .failure:
+                return false
+            }
+        }
     }
 
     private let turtlesimRepository: TurtlesimRepositoryProtocol
