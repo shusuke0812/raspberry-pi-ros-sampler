@@ -10,6 +10,8 @@ import Foundation
 protocol CallServiceViewModelProtocol: ObservableObject {
     var uiState: CallServiceViewModel.UiState { get }
     func spawnTurtle()
+    func moveTurtle()
+    func reset()
 }
 
 class CallServiceViewModel: CallServiceViewModelProtocol {
@@ -34,12 +36,12 @@ class CallServiceViewModel: CallServiceViewModelProtocol {
             }
         }
 
-        var disabledJoystick: Bool {
+        var joystickState: (isDisabled: Bool, opacity: Double) {
             switch self {
             case .standby, .loading, .failure:
-                return true
+                return (true, 0.6)
             case .success:
-                return false
+                return (false, 0.0)
             }
         }
 
@@ -70,5 +72,13 @@ class CallServiceViewModel: CallServiceViewModelProtocol {
                 }
             }
         }
+    }
+
+    func moveTurtle() {
+        turtlesimRepository.moveTurtle(x: 2.0, y: 0.0, theta: 1.0)
+    }
+
+    func reset() {
+        turtlesimRepository.reset()
     }
 }

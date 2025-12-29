@@ -19,8 +19,8 @@ struct CallServiceScreen<ViewModel: CallServiceViewModelProtocol>: View {
     }
 }
 
-private struct BodyView: View {
-    let viewModel: any CallServiceViewModelProtocol
+private struct BodyView<ViewModel: CallServiceViewModelProtocol>: View {
+    @ObservedObject var viewModel: ViewModel
 
     var body: some View {
         VStack {
@@ -37,25 +37,43 @@ private struct BodyView: View {
             Spacer()
             JoystickView()
                 .overlay(
-                    Color.white.opacity(0.6)
-                        .allowsHitTesting(viewModel.uiState.disabledJoystick)
+                    Color.white.opacity(viewModel.uiState.joystickState.opacity)
+                        .allowsHitTesting(viewModel.uiState.joystickState.isDisabled)
                 )
             Spacer()
         }
     }
 }
 
-private struct FooterView: View {
-    let viewModel: any CallServiceViewModelProtocol
+private struct FooterView<ViewModel: CallServiceViewModelProtocol>: View {
+    @ObservedObject var viewModel: ViewModel
 
     var body: some View {
-        Button(action: {
-            viewModel.spawnTurtle()
-        }) {
-            Text("Spawn")
-                .frame(maxWidth: .infinity)
+        HStack {
+            Button(action: {
+                viewModel.spawnTurtle()
+            }) {
+                Text("Spawn")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+
+            Button(action: {
+                viewModel.moveTurtle()
+            }) {
+                Text("Move")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+
+            Button(action: {
+                viewModel.reset()
+            }) {
+                Text("Reset")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
         }
-        .buttonStyle(.borderedProminent)
         .padding(.bottom, 20)
     }
 }
