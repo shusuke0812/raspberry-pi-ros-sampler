@@ -9,7 +9,7 @@ import Foundation
 
 protocol CallServiceViewModelProtocol: ObservableObject {
     var uiState: CallServiceViewModel.UiState { get }
-    func callSpawn()
+    func spawnTurtle()
 }
 
 class CallServiceViewModel: CallServiceViewModelProtocol {
@@ -59,8 +59,8 @@ class CallServiceViewModel: CallServiceViewModelProtocol {
         self.turtlesimRepository = turtlesimRepository
     }
 
-    func callSpawn() {
-        turtlesimRepository.callSpawn(x: 2.0, y: 2.0, theta: 0.2) { result in
+    func spawnTurtle() {
+        turtlesimRepository.spawnTurtle(x: 2.0, y: 2.0, theta: 0.2) { result in
             DispatchQueue.main.async {
                 switch result {
                 case .success:

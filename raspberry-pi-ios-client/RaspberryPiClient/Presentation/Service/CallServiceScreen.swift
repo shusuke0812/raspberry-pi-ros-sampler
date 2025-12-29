@@ -50,7 +50,7 @@ private struct FooterView: View {
 
     var body: some View {
         Button(action: {
-            viewModel.callSpawn()
+            viewModel.spawnTurtle()
         }) {
             Text("Spawn")
                 .frame(maxWidth: .infinity)
