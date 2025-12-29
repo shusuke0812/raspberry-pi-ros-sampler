@@ -11,6 +11,7 @@ import Foundation
 protocol TurtlesimRepositoryProtocol {
     func spawnTurtle(x: Float, y: Float, theta: Float, onMessage: @escaping (Result<Void, RosServiceError>) -> Void)
     func moveTurtle(x: Float, y: Float, theta: Float)
+    func reset()
 }
 
 class TurtlesimRepository: TurtlesimRepositoryProtocol {
@@ -48,5 +49,16 @@ class TurtlesimRepository: TurtlesimRepositoryProtocol {
             message: message
         )
         rosBridgeClient.publish(topic: topic)
+    }
+
+    func reset() {
+        let arg = EmptyService()
+        let callService = RosCallService<EmptyService, EmptyService>(
+            service: "/reset",
+            arg: arg
+        )
+        rosBridgeClient.callService(service: callService) { result in
+            // do nothing
+        }
     }
 }
