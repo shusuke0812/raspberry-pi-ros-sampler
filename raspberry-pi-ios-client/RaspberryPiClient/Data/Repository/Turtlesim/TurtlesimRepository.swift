@@ -28,7 +28,7 @@ class TurtlesimRepository: TurtlesimRepositoryProtocol {
         )
         rosBridgeClient.callService(service: callService) { result in
             switch result {
-            case .success(let response):
+            case .success(_):
                 onMessage(.success(()))
             case .failure(let error):
                 onMessage(.failure(error))
