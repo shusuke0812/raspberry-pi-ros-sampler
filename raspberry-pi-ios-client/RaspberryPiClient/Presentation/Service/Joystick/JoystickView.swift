@@ -12,7 +12,7 @@ import SwiftUI
 struct JoystickView: View {
     let isShowDebugView: Bool
 
-    @State private var knobPosition: CGSize = .zero
+    @State private var knobPosition: KnobPosition = KnobPosition(width: 0, height: 0)
     @State private var isShowUpChevron = false
     @State private var isShowDownChevron = false
     @State private var isShowLeftChevron = false
@@ -50,7 +50,7 @@ struct JoystickView: View {
                         )
                         .opacity(0.5)
                         .frame(width: shadowCircleWidth, height: shadowCircleWidth)
-                        .offset(x: knobPosition.width * 0.6, y: knobPosition.height * 0.6)
+                        .offset(x: knobPosition.xCGFloat * 0.6, y: -knobPosition.yCGFloat * 0.6)
 
                     Circle()
                         .fill(
@@ -62,34 +62,22 @@ struct JoystickView: View {
                             ]), center: .center, startRadius: 0, endRadius: parentCircleWidth * 0.8)
                         )
                         .frame(width: knobCircleWidth, height: knobCircleWidth)
-                        .offset(knobPosition)
+                        .offset(x: knobPosition.xCGFloat, y: -knobPosition.yCGFloat)
                 }
                 .gesture(
                     DragGesture()
                         .onChanged { value in
-                            let distance = sqrt(pow(value.translation.width, 2) + pow(value.translation.height, 2))
-                            let maxDistance: CGFloat = parentCircleWidth / 2 - knobCircleWidth / 2
-
-                            // Knob position
-                            if distance > maxDistance {
-                                let scale = maxDistance / distance
-                                knobPosition = CGSize(
-                                    width: value.translation.width * scale,
-                                    height: value.translation.height * scale
-                                )
-                            } else {
-                                knobPosition = value.translation
-                            }
+                            knobPosition.changePosition(value, parentCircleWidth: parentCircleWidth, knobCircleWidth: knobCircleWidth)
 
                             // Chevron showing
-                            isShowUpChevron = knobPosition.height < -10
-                            isShowDownChevron = knobPosition.height > 10
-                            isShowLeftChevron = knobPosition.width < -10
-                            isShowRightChevron = knobPosition.width > 10
+                            isShowUpChevron = knobPosition.yCGFloat > 10
+                            isShowDownChevron = knobPosition.yCGFloat < -10
+                            isShowLeftChevron = knobPosition.xCGFloat < -10
+                            isShowRightChevron = knobPosition.xCGFloat > 10
                         }
                         .onEnded { _ in
                             withAnimation(.easeOut(duration: 0.2)) {
-                                knobPosition = .zero
+                                knobPosition = KnobPosition(width: 0, height: 0)
 
                                 isShowUpChevron = false
                                 isShowDownChevron = false
@@ -127,26 +115,35 @@ struct JoystickView: View {
             }
             .frame(width: chevronWidth)
 
-            DebugView(showDebugView: isShowDebugView, positionWidth: knobPosition.width, positionHeight: knobPosition.height)
+            DebugView(
+                showDebugView: isShowDebugView,
+                positionWidth: knobPosition.x,
+                positionHeight: knobPosition.y,
+                theta: knobPosition.theta
+            )
         }
     }
 }
 
 private struct DebugView: View {
     let showDebugView: Bool
-    let positionWidth: CGFloat
-    let positionHeight: CGFloat
+    let positionWidth: Float
+    let positionHeight: Float
+    let theta: Float
 
     var body: some View {
         if (showDebugView) {
             VStack {
                 Spacer()
-                Text("X: \(Int(positionWidth)), Y: \(Int(positionHeight))")
-                    .foregroundColor(.white)
-                    .font(.system(size: 20))
-                    .padding()
-                    .background(Color.black.opacity(0.7))
-                    .cornerRadius(8)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("X: \(positionWidth), Y: \(positionHeight)")
+                    Text("Theta: \(theta)°")
+                }
+                .foregroundColor(.white)
+                .font(.system(size: 20))
+                .padding()
+                .background(Color.black.opacity(0.7))
+                .cornerRadius(8)
             }
         }
     }
