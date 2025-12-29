@@ -33,6 +33,15 @@ class CallServiceViewModel: CallServiceViewModelProtocol {
                 return error.description
             }
         }
+
+        var disabledJoystick: Bool {
+            switch self {
+            case .standby, .loading, .failure:
+                return true
+            case .success:
+                return false
+            }
+        }
     }
 
     private let turtlesimRepository: TurtlesimRepositoryProtocol
