@@ -39,6 +39,10 @@ class TurtlesimRepository: TurtlesimRepositoryProtocol {
         }
     }
 
+    /// /turtle2/cmd_vel
+    /// - Parameters:
+    /// - + linear.x = forward, - linear.x = reverse, linear.y = disabled, linear.z = disabled
+    /// - angular.x = disabled, angular.y = disabled, angular.z = yawing
     func moveTurtle(x: Float, y: Float, theta: Float) {
         let message = TwistMessage(
             linear: Vector3Message(x: Double(x), y: Double(y), z: 0),
