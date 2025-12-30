@@ -35,7 +35,10 @@ private struct BodyView<ViewModel: CallServiceViewModelProtocol>: View {
                     .padding()
             }
             Spacer()
-            JoystickView()
+            JoystickView(knobPosition: Binding(
+                get: { viewModel.knobPosition },
+                set: { viewModel.changeKnobPosition($0) }
+            ))
                 .overlay(
                     Color.white.opacity(viewModel.uiState.joystickState.opacity)
                         .allowsHitTesting(viewModel.uiState.joystickState.isDisabled)
@@ -54,14 +57,6 @@ private struct FooterView<ViewModel: CallServiceViewModelProtocol>: View {
                 viewModel.spawnTurtle()
             }) {
                 Text("Spawn")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-
-            Button(action: {
-                viewModel.moveTurtle()
-            }) {
-                Text("Move")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)

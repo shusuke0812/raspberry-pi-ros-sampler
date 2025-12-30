@@ -9,13 +9,17 @@ import Foundation
 
 protocol CallServiceViewModelProtocol: ObservableObject {
     var uiState: CallServiceViewModel.UiState { get }
+    var knobPosition: KnobPosition { get set }
     func spawnTurtle()
-    func moveTurtle()
     func reset()
+    func changeKnobPosition(_ position: KnobPosition)
 }
 
 class CallServiceViewModel: CallServiceViewModelProtocol {
     @Published private(set) var uiState: UiState = .standby
+    @Published var knobPosition: KnobPosition = KnobPosition(width: 0, height: 0)
+    
+    private var moveTimer: Timer?
 
     enum UiState {
         case standby
@@ -60,6 +64,10 @@ class CallServiceViewModel: CallServiceViewModelProtocol {
     init(turtlesimRepository: TurtlesimRepositoryProtocol = TurtlesimRepository()) {
         self.turtlesimRepository = turtlesimRepository
     }
+    
+    deinit {
+        stopMoveTurtle()
+    }
 
     func spawnTurtle() {
         turtlesimRepository.spawnTurtle(x: 2.0, y: 2.0, theta: 0.2) { result in
@@ -67,6 +75,7 @@ class CallServiceViewModel: CallServiceViewModelProtocol {
                 switch result {
                 case .success:
                     self.uiState = .success("")
+                    self.startMoveTurtle()
                 case .failure(let error):
                     self.uiState = .failure(error)
                 }
@@ -74,11 +83,27 @@ class CallServiceViewModel: CallServiceViewModelProtocol {
         }
     }
 
-    func moveTurtle() {
-        turtlesimRepository.moveTurtle(x: 2.0, y: 0.0, theta: 1.0)
-    }
-
     func reset() {
         turtlesimRepository.reset()
+    }
+
+    func changeKnobPosition(_ position: KnobPosition) {
+        knobPosition = position
+        print(position.x, position.y, position.theta)
+    }
+
+    private func startMoveTurtle() {
+        stopMoveTurtle()
+        moveTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            DispatchQueue.global(qos: .userInitiated).async {
+                self.turtlesimRepository.moveTurtle(x: self.knobPosition.x, y: self.knobPosition.y, theta: self.knobPosition.theta)
+            }
+        }
+    }
+
+    private func stopMoveTurtle() {
+        moveTimer?.invalidate()
+        moveTimer = nil
     }
 }
