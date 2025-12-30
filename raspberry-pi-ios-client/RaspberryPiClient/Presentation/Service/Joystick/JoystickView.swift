@@ -11,8 +11,8 @@ import SwiftUI
 
 struct JoystickView: View {
     let isShowDebugView: Bool
+    @Binding var knobPosition: KnobPosition
 
-    @State private var knobPosition: KnobPosition = KnobPosition(width: 0, height: 0)
     @State private var isShowUpChevron = false
     @State private var isShowDownChevron = false
     @State private var isShowLeftChevron = false
@@ -20,21 +20,17 @@ struct JoystickView: View {
 
     private let screenWidth = UIScreen.main.bounds.width
 
-    init(isShowDebugView: Bool = false) {
+    init(knobPosition: Binding<KnobPosition>, isShowDebugView: Bool = false) {
+        self._knobPosition = knobPosition
         self.isShowDebugView = isShowDebugView
     }
 
     var body: some View {
-        let chevronWidth: CGFloat = screenWidth * 0.875
-        let parentCircleWidth: CGFloat = screenWidth * 0.625
-        let shadowCircleWidth: CGFloat = screenWidth * 0.375
-        let knobCircleWidth: CGFloat = screenWidth * 0.25
-
         ZStack {
             ZStack {
                 Circle()
                     .fill(Color.gray.opacity(0.1))
-                    .frame(width: parentCircleWidth, height: parentCircleWidth)
+                    .frame(width: KnobPosition.parentCircleWidth, height: KnobPosition.parentCircleWidth)
                     .shadow(color: Color.white.opacity(0.1), radius: 10, x: -5, y: -5)
                     .shadow(color: Color.black.opacity(0.5), radius: 10, x: 5, y: 5)
 
@@ -46,10 +42,10 @@ struct JoystickView: View {
                                 Color.gray.opacity(0.2),
                                 Color.gray.opacity(0.3),
                                 Color.black
-                            ]), center: .center, startRadius: 0, endRadius: parentCircleWidth * 0.8)
+                            ]), center: .center, startRadius: 0, endRadius: KnobPosition.parentCircleWidth * 0.8)
                         )
                         .opacity(0.5)
-                        .frame(width: shadowCircleWidth, height: shadowCircleWidth)
+                        .frame(width: KnobPosition.shadowCircleWidth, height: KnobPosition.shadowCircleWidth)
                         .offset(x: knobPosition.xCGFloat * 0.6, y: -knobPosition.yCGFloat * 0.6)
 
                     Circle()
@@ -59,15 +55,15 @@ struct JoystickView: View {
                                 Color.red.opacity(0.5),
                                 Color.red.opacity(0.7),
                                 Color.black
-                            ]), center: .center, startRadius: 0, endRadius: parentCircleWidth * 0.8)
+                            ]), center: .center, startRadius: 0, endRadius: KnobPosition.parentCircleWidth * 0.8)
                         )
-                        .frame(width: knobCircleWidth, height: knobCircleWidth)
+                        .frame(width: KnobPosition.knobCircleWidth, height: KnobPosition.knobCircleWidth)
                         .offset(x: knobPosition.xCGFloat, y: -knobPosition.yCGFloat)
                 }
                 .gesture(
                     DragGesture()
                         .onChanged { value in
-                            knobPosition.changePosition(value, parentCircleWidth: parentCircleWidth, knobCircleWidth: knobCircleWidth)
+                            knobPosition.changePosition(value)
 
                             // Chevron showing
                             isShowUpChevron = knobPosition.yCGFloat > 10
@@ -87,7 +83,7 @@ struct JoystickView: View {
                         }
                 )
             }
-            .frame(width: parentCircleWidth, height: parentCircleWidth)
+            .frame(width: KnobPosition.parentCircleWidth, height: KnobPosition.parentCircleWidth)
 
             VStack {
                 Image(systemName: "chevron.up")
@@ -100,7 +96,7 @@ struct JoystickView: View {
                     .font(.system(size: 35))
                     .foregroundColor(isShowDownChevron ? .black : .black.opacity(0.2))
             }
-            .frame(height: chevronWidth)
+            .frame(height: KnobPosition.chevronWidth)
 
             HStack {
                 Image(systemName: "chevron.left")
@@ -113,7 +109,7 @@ struct JoystickView: View {
                     .font(.system(size: 35))
                     .foregroundColor(isShowRightChevron ? .black : .black.opacity(0.2))
             }
-            .frame(width: chevronWidth)
+            .frame(width: KnobPosition.chevronWidth)
 
             DebugView(
                 showDebugView: isShowDebugView,
@@ -150,5 +146,16 @@ private struct DebugView: View {
 }
 
 #Preview {
-    JoystickView(isShowDebugView: true)
+    PreviewWrapper()
+}
+
+private struct PreviewWrapper: View {
+    @State private var knobPosition = KnobPosition(width: 0, height: 0)
+    
+    var body: some View {
+        JoystickView(
+            knobPosition: $knobPosition,
+            isShowDebugView: true
+        )
+    }
 }
