@@ -34,7 +34,7 @@ class CallServiceViewModel: CallServiceViewModelProtocol {
             case .loading:
                 return ""
             case .success(let message):
-                return "Success\n\(message)"
+                return "Moving...\n\(message)"
             case .failure(let error):
                 return error.description
             }
@@ -54,6 +54,24 @@ class CallServiceViewModel: CallServiceViewModelProtocol {
             case .loading:
                 return true
             case .standby, .success, .failure:
+                return false
+            }
+        }
+
+        var isSpawnDisabled: Bool {
+            switch self {
+            case .standby, .failure:
+                return false
+            case .loading, .success:
+                return true
+            }
+        }
+
+        var isResetDisabled: Bool {
+            switch self {
+            case .standby, .failure:
+                return true
+            case .loading, .success:
                 return false
             }
         }

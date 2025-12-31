@@ -59,6 +59,7 @@ private struct FooterView<ViewModel: CallServiceViewModelProtocol>: View {
                 Text("Spawn")
                     .frame(maxWidth: .infinity)
             }
+            .disabled(viewModel.uiState.isSpawnDisabled)
             .buttonStyle(.borderedProminent)
 
             Button(action: {
@@ -67,6 +68,7 @@ private struct FooterView<ViewModel: CallServiceViewModelProtocol>: View {
                 Text("Reset")
                     .frame(maxWidth: .infinity)
             }
+            .disabled(viewModel.uiState.isResetDisabled)
             .buttonStyle(.borderedProminent)
         }
         .padding(.bottom, 20)
