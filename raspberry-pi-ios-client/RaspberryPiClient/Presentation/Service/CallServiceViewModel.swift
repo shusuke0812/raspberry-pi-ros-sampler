@@ -97,7 +97,7 @@ class CallServiceViewModel: CallServiceViewModelProtocol {
         moveTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [weak self] _ in
             guard let self else { return }
             DispatchQueue.global(qos: .userInitiated).async {
-                self.turtlesimRepository.moveTurtle(x: self.knobPosition.x, y: self.knobPosition.y, theta: self.knobPosition.theta)
+                self.turtlesimRepository.moveTurtle(x: self.knobPosition.y, y: self.knobPosition.x, radian: self.knobPosition.radian)
             }
         }
     }

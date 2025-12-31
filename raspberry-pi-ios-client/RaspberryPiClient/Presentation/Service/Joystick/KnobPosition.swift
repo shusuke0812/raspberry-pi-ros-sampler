@@ -14,6 +14,9 @@ struct KnobPosition {
         parentCircleWidth / 2 - knobCircleWidth / 2
     }
 
+    /// Waiting factor
+    private let WF: Double = 20.0
+
     static var chevronWidth: CGFloat {
         screenWidth * 0.875
     }
@@ -34,14 +37,14 @@ struct KnobPosition {
     // MARK: Range -2.0 ~ +2.0 to use ROS2 service
 
     var x: Float {
-        let normalizedValue = (position.width / Self.maxDistance) * 2.0
-        let clampedValue = max(-2.0, min(2.0, normalizedValue))
+        let normalizedValue = (position.width / Self.maxDistance) * WF
+        let clampedValue = max(-10.0, min(10.0, normalizedValue))
         return Float(floor(clampedValue * 100) / 100)
     }
 
     var y: Float {
-        let normalizedValue = (position.height / Self.maxDistance) * 2.0
-        let clampedValue = max(-2.0, min(2.0, normalizedValue))
+        let normalizedValue = (position.height / Self.maxDistance) * WF
+        let clampedValue = max(-10.0, min(10.0, normalizedValue))
         return Float(floor(clampedValue * 100) / 100)
     }
 
@@ -56,9 +59,13 @@ struct KnobPosition {
     }
 
     var theta: Float {
-        let radians = atan2(y, x)
+        let radians = atan2(x, y)
         let degrees = radians * 180.0 / .pi
         return degrees >= 0 ? degrees : degrees + 360.0
+    }
+
+    var radian: Float {
+        -atan2(x, y) * Float(WF / 2.0)
     }
 
     mutating func changePosition(_ value: DragGesture.Value) {

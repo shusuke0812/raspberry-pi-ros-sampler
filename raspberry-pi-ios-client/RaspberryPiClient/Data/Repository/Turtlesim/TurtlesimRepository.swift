@@ -10,7 +10,7 @@ import Foundation
 /// [ROS Turtlesim Doc](https://wiki.ros.org/turtlesim)
 protocol TurtlesimRepositoryProtocol {
     func spawnTurtle(x: Float, y: Float, theta: Float, onMessage: @escaping (Result<Void, RosServiceError>) -> Void)
-    func moveTurtle(x: Float, y: Float, theta: Float)
+    func moveTurtle(x: Float, y: Float, radian: Float)
     func reset()
 }
 
@@ -41,12 +41,12 @@ class TurtlesimRepository: TurtlesimRepositoryProtocol {
 
     /// /turtle2/cmd_vel
     /// - Parameters:
-    /// - + linear.x = forward, - linear.x = reverse, linear.y = disabled, linear.z = disabled
-    /// - angular.x = disabled, angular.y = disabled, angular.z = yawing
-    func moveTurtle(x: Float, y: Float, theta: Float) {
+    /// - [m/s] + linear.x = forward, - linear.x = reverse, linear.y = disabled, linear.z = disabled
+    /// -  [rad/s] angular.x = disabled, angular.y = disabled, angular.z = yawin
+    func moveTurtle(x: Float, y: Float, radian: Float) {
         let message = TwistMessage(
-            linear: Vector3Message(x: Double(x), y: Double(y), z: 0),
-            angular: Vector3Message(x: 0, y: 0, z: Double(theta))
+            linear: Vector3Message(x: Double(x), y: 0, z: 0),
+            angular: Vector3Message(x: 0, y: 0, z: Double(radian))
         )
         let topic = RosTopicPublish<TwistMessage>(
             topic: "/\(turtleName)/cmd_vel",
