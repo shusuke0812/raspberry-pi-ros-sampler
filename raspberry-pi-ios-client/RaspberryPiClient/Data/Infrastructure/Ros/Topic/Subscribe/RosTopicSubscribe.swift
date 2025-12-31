@@ -10,7 +10,7 @@ import Foundation
 /// [Subscribe Protocol](https://github.com/RobotWebTools/rosbridge_suite/blob/ros2/ROSBRIDGE_PROTOCOL.md#334-subscribe)
 struct RosTopicSubscribe<T: RosMessageProtocol>: RosTopicSubscribeProtocol {
     let id: String?
-    let op: RosTopicOperation
+    let op: RosBridgeMessageOperation
     let topic: String
     let messageType: String
     let throttelRate: Int?
@@ -27,7 +27,7 @@ struct RosTopicSubscribe<T: RosMessageProtocol>: RosTopicSubscribeProtocol {
 
     init(id: String? = nil, topic: String, messageType: String, throttelRate: Int? = nil) {
         self.id = id
-        self.op = RosTopicOperation.subscribe
+        self.op = RosBridgeMessageOperation.subscribe
         self.topic = topic
         self.messageType = messageType
         self.throttelRate = throttelRate

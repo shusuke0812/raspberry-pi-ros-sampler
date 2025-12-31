@@ -15,16 +15,19 @@ protocol RosBridgeConnectionProtocol {
     func observeConnectionState() -> AsyncStream<WebSocketConnectionState>
 }
 
-protocol RosBridgeSubscriptionProtocol {
+protocol RosBridgeMessageProtocol {
+    func publish<T: RosMessageProtocol>(topic: RosTopicPublish<T>)
     func startSubscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (Result<RosTopicPublish<T>, RosTopicError>) -> Void)
     func endSubscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>)
+    func callService<T: RosCallServiceProtocol>(service: T, onMessage: @escaping (Result<T.Response, RosServiceError>) -> Void)
 }
 
-class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtocol {
+class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtocol {
     static let shared = RosBridgeClient()
     private let websocketClient: WebSocketClient
 
-    private var messageHandlers: [String: [(Result<String, RosTopicError>) -> Void]] = [:]
+    private var topicMessageHandlers: [String: [(Result<String, RosTopicError>) -> Void]] = [:]
+    private var serviceMessageHandlers: [String: [(Result<String, RosServiceError>) -> Void]] = [:]
     private var messageReceiverTask: Task<Void, Never>?
 
     private init() {
@@ -41,7 +44,7 @@ class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtoco
     func disconnect() {
         messageReceiverTask?.cancel()
         messageReceiverTask = nil
-        messageHandlers.removeAll()
+        topicMessageHandlers.removeAll()
         websocketClient.disconnect()
     }
 
@@ -49,10 +52,27 @@ class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtoco
         return websocketClient.connectionStates
     }
 
-    // MARK: - Publish / Subscribe
+    // MARK: - Publish
+
+    func publish<T: RosMessageProtocol>(topic: RosTopicPublish<T>) {
+        guard topic.header.op == .publish else {
+            return
+        }
+        guard let jsonData = try? JSONEncoder().encode(topic),
+              let topicJsonString = String(data: jsonData, encoding: .utf8) else {
+            assertionFailure("Failed to encode RosTopicPublish to JSON string")
+            return
+        }
+        
+        Task {
+            try? await websocketClient.send(text: topicJsonString)
+        }
+    }
+
+    // MARK: - Subscribe
 
     func startSubscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (Result<RosTopicPublish<T>, RosTopicError>) -> Void) {
-        if messageHandlers[topic.topic] != nil {
+        if topicMessageHandlers[topic.topic] != nil {
             onMessage(.failure(.alreadySubscribed))
             return
         }
@@ -60,7 +80,7 @@ class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtoco
     }
 
     func endSubscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>) {
-        if messageHandlers[topic.topic] == nil {
+        if topicMessageHandlers[topic.topic] == nil {
             return
         }
         let unsubscribeTopic = RosTopicUnsubscribe(id: topic.id, topic: topic.topic)
@@ -94,17 +114,16 @@ class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtoco
     }
 
     private func registerSubscriber<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (Result<RosTopicPublish<T>, RosTopicError>) -> Void) {
-        if messageHandlers[topic.topic] == nil {
-            messageHandlers[topic.topic] = []
-        }
-        messageHandlers[topic.topic]?.append { result in
+        topicMessageHandlers[topic.topic] = []
+        topicMessageHandlers[topic.topic]?.append { result in
             switch result {
             case .success(let message):
+                guard topic.isEqual(to: message) else {
+                    return
+                }
                 do {
-                    if topic.isEqual(to: message) {
-                        let result = try topic.decodeMessage(from: message)
-                        onMessage(.success(result))
-                    }
+                    let result = try topic.decodeMessage(from: message)
+                    onMessage(.success(result))
                 } catch {
                     onMessage(.failure(error as! RosTopicError))
                 }
@@ -115,8 +134,78 @@ class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtoco
     }
 
     private func deregisterSubscriber(topic: RosTopicUnsubscribe) {
-        messageHandlers.removeValue(forKey: topic.topic)
+        topicMessageHandlers.removeValue(forKey: topic.topic)
     }
+
+    private func handleTopic(message: String, jsonData: Data) {
+        do {
+            let header = try JSONDecoder().decode(RosTopicPublishHeader.self, from: jsonData)
+            if let handlers = topicMessageHandlers[header.topic] {
+                for handler in handlers {
+                    handler(.success(message))
+                }
+            }
+        } catch {
+            assertionFailure(error.localizedDescription)
+        }
+    }
+
+    // MARK: - Service
+
+    func callService<T: RosCallServiceProtocol>(service: T, onMessage: @escaping (Result<T.Response, RosServiceError>) -> Void) {
+        if (serviceMessageHandlers[service.header.service] != nil) {
+            onMessage(.failure(.alreadyCalling))
+            return
+        }
+        call(service: service, onMessage: onMessage)
+    }
+
+    private func call<T: RosCallServiceProtocol>(service: T, onMessage: @escaping (Result<T.Response, RosServiceError>) -> Void) {
+        guard let requestJsonString = service.toJsonString(), service.header.op == .callService else {
+            assertionFailure()
+            return
+        }
+        Task {
+            try? await websocketClient.send(text: requestJsonString)
+        }
+        registerService(service: service, onMessage: onMessage)
+    }
+
+    private func registerService<T: RosCallServiceProtocol>(service: T, onMessage: @escaping (Result<T.Response , RosServiceError>) -> Void) {
+        serviceMessageHandlers[service.header.service] = []
+        serviceMessageHandlers[service.header.service]?.append { result in
+            switch result {
+            case .success(let message):
+                guard service.isEqual(to: message) else {
+                    return
+                }
+                do {
+                    let jsonData = message.data(using: .utf8)!
+                    let response = try JSONDecoder().decode(T.Response.self, from: jsonData)
+                    onMessage(.success(response))
+                } catch {
+                    onMessage(.failure(.failedDecodeMessage(reason: error)))
+                }
+            case .failure(let error):
+                onMessage(.failure(error))
+            }
+        }
+    }
+
+    private func handleService(message: String, jsonData: Data) {
+        do {
+            let header = try JSONDecoder().decode(RosServiceResponseHeader.self, from: jsonData)
+            if let handlers = serviceMessageHandlers[header.service] {
+                for handler in handlers {
+                    handler(.success(message))
+                }
+            }
+        } catch {
+            assertionFailure(error.localizedDescription)
+        }
+    }
+
+    // MARK: - Common
 
     private func observeReceivedMessage() {
         messageReceiverTask = Task { [weak self] in
@@ -124,20 +213,28 @@ class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeSubscriptionProtoco
             do {
                 for try await message in websocketClient.messages {
                     guard let jsonData = message.data(using: .utf8),
-                          let topicHeader = try? JSONDecoder().decode(RosTopicPublishHeader.self, from: jsonData) else {
+                          let header = try? JSONDecoder().decode(HandleRosBridgeMessageResponse.self, from: jsonData) else {
                         continue
                     }
-                    
-                    if let handlers = messageHandlers[topicHeader.topic] {
-                        for handler in handlers {
-                            handler(.success(message))
+
+                    if let topic = HandleRosBridgeMessageOperation(header.op) {
+                        switch topic {
+                        case .publish:
+                            handleTopic(message: message, jsonData: jsonData)
+                        case .serviceResponse:
+                            handleService(message: message, jsonData: jsonData)
                         }
                     }
                 }
             } catch {
-                for handlers in messageHandlers.values {
-                    for handler in handlers {
+                for topicMessageHandlers in topicMessageHandlers.values {
+                    for handler in topicMessageHandlers {
                         handler(.failure(RosTopicError.failedReceiveMessage(reason: error)))
+                    }
+                }
+                for serviceMessageHandlers in serviceMessageHandlers.values {
+                    for handler in serviceMessageHandlers {
+                        handler(.failure(RosServiceError.failedReceiveMessage(reason: error)))
                     }
                 }
             }

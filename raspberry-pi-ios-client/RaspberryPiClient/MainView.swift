@@ -10,6 +10,7 @@ import SwiftUI
 enum ScreenTab: Int {
     case connection
     case topic
+    case service
 }
 
 struct MainView: View {
@@ -27,6 +28,11 @@ struct MainView: View {
                     Label("Topic Monitor", systemImage: "dot.radiowaves.left.and.right")
                 }
                 .tag(ScreenTab.topic)
+            CallServiceScreen(viewModel: CallServiceViewModel())
+                .tabItem {
+                    Label("Call Service", systemImage: "wave.3.up")
+                }
+                .tag(ScreenTab.service)
         }
     }
 }
