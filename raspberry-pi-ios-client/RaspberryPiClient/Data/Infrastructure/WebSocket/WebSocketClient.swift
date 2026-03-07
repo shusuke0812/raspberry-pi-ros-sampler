@@ -13,34 +13,53 @@ final class WebSocketClient: NSObject {
     private var timeoutTask: Task<Void, Never>?
     private let connectionTimeoutSeconds: TimeInterval = 10.0
 
-    private var stateConnection: AsyncStream<WebSocketConnectionState>.Continuation?
+    /// 単一のストリームを保持し、参照のたびに上書きされないようにする
+    private var connectionStatesStream: AsyncStream<WebSocketConnectionState>?
+    private var stateContinuation: AsyncStream<WebSocketConnectionState>.Continuation?
+
+    /// 単一のストリームを保持。初回参照時または disconnect 後の connect で生成される
+    private var messagesStream: AsyncThrowingStream<String, Error>?
+    private var messageContinuation: AsyncThrowingStream<String, Error>.Continuation?
+
     var connectionStates: AsyncStream<WebSocketConnectionState> {
-        AsyncStream { continuation in
-            self.stateConnection = continuation
-        }
+        connectionStatesStream!
     }
 
-    private var messageContinuation: AsyncThrowingStream<String, Error>.Continuation?
     var messages: AsyncThrowingStream<String, Error> {
-        AsyncThrowingStream { continuation in
-            self.messageContinuation = continuation
-            return ()
+        if let stream = messagesStream {
+            return stream
         }
+        let stream = AsyncThrowingStream<String, Error> { [weak self] continuation in
+            self?.messageContinuation = continuation
+        }
+        messagesStream = stream
+        return stream
     }
 
     override init() {
         super.init()
         self.session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
+        let (stream, continuation) = AsyncStream.makeStream(of: WebSocketConnectionState.self)
+        self.connectionStatesStream = stream
+        self.stateContinuation = continuation
+        continuation.yield(.ready)
     }
 
     // TODO: ROSBridgeと接続するにはApp Transport Securityの設定が必要かも
     func connect(webSocketUrl: WebSocketUrl) {
         timeoutTask?.cancel()
-        
-        stateConnection?.yield(.connecting)
+
+        if messagesStream == nil {
+            let stream = AsyncThrowingStream<String, Error> { [weak self] continuation in
+                self?.messageContinuation = continuation
+            }
+            messagesStream = stream
+        }
+
+        stateContinuation?.yield(.connecting)
         webSocketTask = session?.webSocketTask(with: webSocketUrl.url)
         webSocketTask?.resume()
-        
+
         startConnectionTimeout()
     }
 
@@ -49,7 +68,13 @@ final class WebSocketClient: NSObject {
         timeoutTask = nil
         webSocketTask?.cancel(with: .normalClosure, reason: nil)
         webSocketTask = nil
+        finishMessagesStream()
+    }
+
+    private func finishMessagesStream() {
         messageContinuation?.finish()
+        messageContinuation = nil
+        messagesStream = nil
     }
 
     func send(text: String) async throws {
@@ -81,6 +106,7 @@ final class WebSocketClient: NSObject {
         } catch {
             // Network errors, WebSocket connection errors
             messageContinuation?.finish(throwing: error)
+            finishMessagesStream()
         }
     }
     
@@ -90,10 +116,10 @@ final class WebSocketClient: NSObject {
             do {
                 try await Task.sleep(nanoseconds: UInt64(self.connectionTimeoutSeconds * 1_000_000_000))
                 await MainActor.run {
-                    self.stateConnection?.yield(.connectingTimeout)
+                    self.stateContinuation?.yield(.connectingTimeout)
                     self.webSocketTask?.cancel(with: .normalClosure, reason: nil)
                     self.webSocketTask = nil
-                    self.stateConnection?.yield(.ready)
+                    self.stateContinuation?.yield(.ready)
                 }
             } catch {
                 // do nothing
@@ -109,12 +135,12 @@ extension WebSocketClient: URLSessionWebSocketDelegate {
         timeoutTask?.cancel()
         timeoutTask = nil
         
-        stateConnection?.yield(.connected)
+        stateContinuation?.yield(.connected)
         Task { await receiveMessages() }
     }
-    
+
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
-        stateConnection?.yield(.disconnected(closeCode: closeCode, reason: reason))
-        messageContinuation?.finish()
+        stateContinuation?.yield(.disconnected(closeCode: closeCode, reason: reason))
+        finishMessagesStream()
     }
 }
