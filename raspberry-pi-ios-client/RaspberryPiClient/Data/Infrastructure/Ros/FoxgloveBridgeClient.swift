@@ -32,6 +32,11 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
     /// serviceId → サービス名 のマップ（unadvertiseServices 時に使用）
     private(set) var serviceIdToNameMap: [UInt32: String] = [:]
 
+    /// クライアント publish 用: トピック名 → channelId のマップ（Client Advertise で登録したチャンネル）
+    private var clientPublishTopicToChannelId: [String: UInt32] = [:]
+    private var nextClientChannelId: UInt32 = 1
+    private let clientPublishQueue = DispatchQueue(label: "jp.shusuke.ota.FoxgloveBridgeClient.clientPublishQueue")
+
     private let mapQueue = DispatchQueue(label: "jp.shusuke.ota.FoxgloveBridgeClient.mapQueue")
 
     /// トピック → 購読情報（subscriptionId とデコード・通知用クロージャ）
@@ -70,7 +75,51 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
     // MARK: - RosBridgeMessageProtocol
 
     func publish<T: RosMessageProtocol>(topic: RosTopicPublish<T>) {
-        // TODO: Phase 2.4 で実装
+        guard mapQueue.sync(execute: { serverInfo?.supportsClientPublish }) == true else {
+            return
+        }
+        guard mapQueue.sync(execute: { serverInfo?.supportsJsonEncoding }) == true else {
+            return
+        }
+
+        let (channelId, needsAdvertise) = clientPublishQueue.sync { () -> (UInt32, Bool) in
+            if let existing = clientPublishTopicToChannelId[topic.header.topic] {
+                return (existing, false)
+            }
+            let id = nextClientChannelId
+            nextClientChannelId += 1
+            clientPublishTopicToChannelId[topic.header.topic] = id
+            return (id, true)
+        }
+
+        guard let payloadData = try? JSONEncoder().encode(topic.message) else {
+            return
+        }
+
+        let binaryData = FoxgloveBinaryMessageEncoder.encodeClientMessageData(channelId: channelId, payload: payloadData)
+
+        Task {
+            if needsAdvertise {
+                await sendClientAdvertise(topic: topic.header.topic, channelId: channelId, schemaName: T.rosSchemaName)
+            }
+            try? await websocketClient.send(data: binaryData)
+        }
+    }
+
+    private func sendClientAdvertise(topic: String, channelId: UInt32, schemaName: String) async {
+        let channel = FoxgloveClientAdvertiseChannel(
+            id: channelId,
+            topic: topic,
+            encoding: "json",
+            schemaName: schemaName,
+            schema: nil,
+            schemaEncoding: nil
+        )
+        let advertise = FoxgloveClientAdvertise(channels: [channel])
+        guard let jsonString = advertise.toJsonString() else {
+            return
+        }
+        try? await websocketClient.send(text: jsonString)
     }
 
     func startSubscribe<T: RosMessageProtocol>(topic: RosTopicSubscribe<T>, onMessage: @escaping (Result<RosTopicPublish<T>, RosTopicError>) -> Void) {
@@ -167,6 +216,10 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
             channelIdToTopicMap.removeAll()
             serviceNameToIdMap.removeAll()
             serviceIdToNameMap.removeAll()
+        }
+        clientPublishQueue.sync {
+            clientPublishTopicToChannelId.removeAll()
+            nextClientChannelId = 1
         }
     }
 
