@@ -17,6 +17,16 @@ struct WebSocketUrl {
         self.port = port
     }
 
+    /// ROS Bridge 用の URL（ポート 9090）
+    static func rosbridge(ipAddress: String) -> WebSocketUrl {
+        WebSocketUrl(ipAddress: ipAddress, port: 9090)
+    }
+
+    /// Foxglove Bridge 用の URL（ポート 8765）
+    static func foxglove(ipAddress: String) -> WebSocketUrl {
+        WebSocketUrl(ipAddress: ipAddress, port: 8765)
+    }
+
     var url: URL {
         let path = sheme + "://" + ipAddress + ":\(port)"
         return URL(string: path)! // TODO: pathに不正な文字列が入ったらクラッシュするのでバリデートする

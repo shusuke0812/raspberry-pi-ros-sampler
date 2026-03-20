@@ -45,8 +45,10 @@ final class WebSocketClient: NSObject {
         continuation.yield(.ready)
     }
 
-    // TODO: ROSBridgeと接続するにはApp Transport Securityの設定が必要かも
-    func connect(webSocketUrl: WebSocketUrl) {
+    /// - Parameters:
+    ///   - webSocketUrl: 接続先の WebSocket URL
+    ///   - protocols: サブプロトコル（例: Foxglove Bridge の場合は `["foxglove.websocket.v1"]`） [RFC6455-Opening Handshake](https://tex2e.github.io/rfc-translater/html/rfc6455.html#4--Opening-Handshake)
+    func connect(webSocketUrl: WebSocketUrl, protocols: [String]? = nil) {
         timeoutTask?.cancel()
 
         if messagesStream == nil {
@@ -57,7 +59,11 @@ final class WebSocketClient: NSObject {
         }
 
         stateContinuation?.yield(.connecting)
-        webSocketTask = session?.webSocketTask(with: webSocketUrl.url)
+        if let protocols = protocols, !protocols.isEmpty {
+            webSocketTask = session?.webSocketTask(with: webSocketUrl.url, protocols: protocols)
+        } else {
+            webSocketTask = session?.webSocketTask(with: webSocketUrl.url)
+        }
         webSocketTask?.resume()
 
         startConnectionTimeout()
