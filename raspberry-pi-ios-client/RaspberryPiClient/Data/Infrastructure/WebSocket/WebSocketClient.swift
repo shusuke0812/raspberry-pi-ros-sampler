@@ -21,6 +21,10 @@ final class WebSocketClient: NSObject {
     private var messagesStream: AsyncThrowingStream<String, Error>?
     private var messageContinuation: AsyncThrowingStream<String, Error>.Continuation?
 
+    /// バイナリメッセージ用ストリーム（Foxglove Bridge の Message Data 等）
+    private var binaryMessagesStream: AsyncThrowingStream<Data, Error>?
+    private var binaryMessageContinuation: AsyncThrowingStream<Data, Error>.Continuation?
+
     var connectionStates: AsyncStream<WebSocketConnectionState> {
         connectionStatesStream!
     }
@@ -33,6 +37,18 @@ final class WebSocketClient: NSObject {
             self?.messageContinuation = continuation
         }
         messagesStream = stream
+        return stream
+    }
+
+    /// バイナリメッセージのストリーム（Foxglove Bridge の Message Data opcode 0x01 等で使用）
+    var binaryMessages: AsyncThrowingStream<Data, Error> {
+        if let stream = binaryMessagesStream {
+            return stream
+        }
+        let stream = AsyncThrowingStream<Data, Error> { [weak self] continuation in
+            self?.binaryMessageContinuation = continuation
+        }
+        binaryMessagesStream = stream
         return stream
     }
 
@@ -56,6 +72,12 @@ final class WebSocketClient: NSObject {
                 self?.messageContinuation = continuation
             }
             messagesStream = stream
+        }
+        if binaryMessagesStream == nil {
+            let stream = AsyncThrowingStream<Data, Error> { [weak self] continuation in
+                self?.binaryMessageContinuation = continuation
+            }
+            binaryMessagesStream = stream
         }
 
         stateContinuation?.yield(.connecting)
@@ -81,6 +103,9 @@ final class WebSocketClient: NSObject {
         messageContinuation?.finish()
         messageContinuation = nil
         messagesStream = nil
+        binaryMessageContinuation?.finish()
+        binaryMessageContinuation = nil
+        binaryMessagesStream = nil
     }
 
     func send(text: String) async throws {
@@ -102,9 +127,7 @@ final class WebSocketClient: NSObject {
                 case .string(let text):
                     messageContinuation?.yield(text)
                 case .data(let data):
-                    if let text = String(data: data, encoding: .utf8) {
-                        messageContinuation?.yield(text)
-                    }
+                    binaryMessageContinuation?.yield(data)
                 @unknown default:
                     assertionFailure("Unexpected receive message type: \(message)")
                 }
@@ -112,6 +135,7 @@ final class WebSocketClient: NSObject {
         } catch {
             // Network errors, WebSocket connection errors
             messageContinuation?.finish(throwing: error)
+            binaryMessageContinuation?.finish(throwing: error)
             finishMessagesStream()
         }
     }

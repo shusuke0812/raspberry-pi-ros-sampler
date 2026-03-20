@@ -60,4 +60,15 @@ struct RosTopicSubscribe<T: RosMessageProtocol>: RosTopicSubscribeProtocol {
             throw RosTopicError.failedDecodeMessageToRosPublish(reason: error)
         }
     }
+
+    /// Foxglove Bridge の Message Data ペイロードからデコードする
+    /// ペイロードはメッセージ本体の JSON（例: std_msgs/msg/String なら {"data": "hello"}）
+    func decodeMessageFromPayload(_ payload: Data) throws -> RosTopicPublish<Response> {
+        do {
+            let message = try JSONDecoder().decode(Response.self, from: payload)
+            return RosTopicPublish(id: nil, topic: topic, message: message)
+        } catch {
+            throw RosTopicError.failedDecodeMessageToRosPublish(reason: error)
+        }
+    }
 }
