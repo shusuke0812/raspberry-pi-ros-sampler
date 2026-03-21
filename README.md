@@ -7,7 +7,7 @@
 - ROS: jazzy
 - ROS Bridge Server: 2.3.0(rosbridge_suite)
 
-### RosBridger Server
+### Rosbridge Server
 
 #### 起動
 
