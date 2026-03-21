@@ -38,7 +38,8 @@ class RosBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtocol {
     // MARK: - Connection
 
     func connect(ipAddress: String) {
-        websocketClient.connect(webSocketUrl: WebSocketUrl(ipAddress: ipAddress))
+        let url = WebSocketUrl.rosbridge(ipAddress: ipAddress)
+        websocketClient.connect(webSocketUrl: url)
     }
 
     func disconnect() {

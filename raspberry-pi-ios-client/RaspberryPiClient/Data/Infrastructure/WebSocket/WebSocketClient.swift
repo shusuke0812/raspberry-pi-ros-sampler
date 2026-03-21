@@ -11,7 +11,7 @@ final class WebSocketClient: NSObject {
     private var webSocketTask: URLSessionWebSocketTask?
     private var session: URLSession?
     private var timeoutTask: Task<Void, Never>?
-    private let connectionTimeoutSeconds: TimeInterval = 10.0
+    private let connectionTimeoutSeconds: TimeInterval = 60.0
 
     /// 単一のストリームを保持し、参照のたびに上書きされないようにする
     private var connectionStatesStream: AsyncStream<WebSocketConnectionState>?
@@ -61,10 +61,8 @@ final class WebSocketClient: NSObject {
         continuation.yield(.ready)
     }
 
-    /// - Parameters:
-    ///   - webSocketUrl: 接続先の WebSocket URL
-    ///   - protocols: サブプロトコル（例: Foxglove Bridge の場合は `["foxglove.websocket.v1"]`） [RFC6455-Opening Handshake](https://tex2e.github.io/rfc-translater/html/rfc6455.html#4--Opening-Handshake)
-    func connect(webSocketUrl: WebSocketUrl, protocols: [String]? = nil) {
+    /// - Parameter webSocketUrl: 接続先の WebSocket URL（protocols は WebSocketUrl のプロパティで設定）
+    func connect(webSocketUrl: WebSocketUrl) {
         timeoutTask?.cancel()
 
         if messagesStream == nil {
@@ -81,11 +79,8 @@ final class WebSocketClient: NSObject {
         }
 
         stateContinuation?.yield(.connecting)
-        if let protocols = protocols, !protocols.isEmpty {
-            webSocketTask = session?.webSocketTask(with: webSocketUrl.url, protocols: protocols)
-        } else {
-            webSocketTask = session?.webSocketTask(with: webSocketUrl.url)
-        }
+        let request = webSocketUrl.urlRequest
+        webSocketTask = session?.webSocketTask(with: request)
         webSocketTask?.resume()
 
         startConnectionTimeout()

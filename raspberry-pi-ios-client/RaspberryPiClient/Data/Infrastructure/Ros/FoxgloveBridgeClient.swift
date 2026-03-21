@@ -61,7 +61,7 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
 
     func connect(ipAddress: String) {
         let url = WebSocketUrl.foxglove(ipAddress: ipAddress)
-        websocketClient.connect(webSocketUrl: url, protocols: ["foxglove.websocket.v1"])
+        websocketClient.connect(webSocketUrl: url)
     }
 
     func disconnect() {
