@@ -15,15 +15,15 @@ protocol HelloTopicRepositoryProtocol {
 }
 
 class HelloTopicRepository: HelloTopicRepositoryProtocol {
-    private let rosBridgeClient: RosBridgeMessageProtocol
+    private let connectionRepository: RosBridgeConnectionRepositoryProtocol
 
-    init(rosBridgeClient: RosBridgeMessageProtocol = RosBridgeClient.shared) {
-        self.rosBridgeClient = rosBridgeClient
+    init(connectionRepository: RosBridgeConnectionRepositoryProtocol = RosBridgeConnectionRepository()) {
+        self.connectionRepository = connectionRepository
     }
 
     func subscribeHello(onMessage: @escaping (Result<HelloTopicResponse, RosTopicError>) -> Void) {
         let topic = RosTopicSubscribe<StringMessage>(topic: "/hello", messageType: "std_msgs/msg/String")
-        rosBridgeClient.startSubscribe(topic: topic) { result in
+        connectionRepository.activeMessageClient.startSubscribe(topic: topic) { result in
             switch result {
             case .success(let message):
                 onMessage(.success(message))
@@ -35,12 +35,12 @@ class HelloTopicRepository: HelloTopicRepositoryProtocol {
 
     func unsubscribeHello() {
         let topic = RosTopicSubscribe<StringMessage>(topic: "/hello", messageType: "std_msgs/msg/String")
-        rosBridgeClient.endSubscribe(topic: topic)
+        connectionRepository.activeMessageClient.endSubscribe(topic: topic)
     }
 
     func subscribeHelloSignal(onMessage: @escaping (Result<HelloSignalTopicResponse, RosTopicError>) -> Void) {
         let topic = RosTopicSubscribe<Int8Message>(topic: "/hello_signal", messageType: "std_msgs/msg/Int8")
-        rosBridgeClient.startSubscribe(topic: topic) { result in
+        connectionRepository.activeMessageClient.startSubscribe(topic: topic) { result in
             switch result {
             case .success(let message):
                 onMessage(.success(message))
@@ -52,6 +52,6 @@ class HelloTopicRepository: HelloTopicRepositoryProtocol {
 
     func unsubscribeHelloSignal() {
         let topic = RosTopicSubscribe<Int8Message>(topic: "/hello_signal", messageType: "std_msgs/msg/Int8")
-        rosBridgeClient.endSubscribe(topic: topic)
+        connectionRepository.activeMessageClient.endSubscribe(topic: topic)
     }
 }
