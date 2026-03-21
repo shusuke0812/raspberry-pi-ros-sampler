@@ -22,6 +22,7 @@ struct ConnectionScreen<ViewModel: ConnectionViewModelProtocol>: View {
             .pickerStyle(.segmented)
             .disabled(viewModel.connectionStatus == .connected)
             TextField("IP Address", text: $viewModel.ipAddress)
+                .keyboardType(.decimalPad)
                 .frame(width: screenWidth.width * 0.7)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
             Button(action: {
