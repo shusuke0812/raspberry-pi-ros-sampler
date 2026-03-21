@@ -12,6 +12,10 @@ struct ConnectionScreen<ViewModel: ConnectionViewModelProtocol>: View {
 
     private let screenWidth = UIScreen.main.bounds
 
+    private func dismissKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+
     var body: some View {
         VStack(alignment: .center, spacing: 30) {
             Picker("Connection Mode", selection: $viewModel.connectionMode) {
@@ -26,6 +30,7 @@ struct ConnectionScreen<ViewModel: ConnectionViewModelProtocol>: View {
                 .frame(width: screenWidth.width * 0.7)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
             Button(action: {
+                dismissKeyboard()
                 viewModel.connect()
             }) {
                 Group {
@@ -50,6 +55,11 @@ struct ConnectionScreen<ViewModel: ConnectionViewModelProtocol>: View {
             .buttonStyle(.borderedProminent)
             Text("\(viewModel.connectionMode.rawValue): \(viewModel.connectionStatus.description)")
                 .font(.headline)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            dismissKeyboard()
         }
         .padding()
     }
