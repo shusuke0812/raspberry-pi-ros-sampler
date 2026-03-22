@@ -8,7 +8,7 @@
 import Foundation
 
 struct WebSocketUrl {
-    private let sheme = "ws"
+    private let scheme = "ws"
     private let port: Int
     private let ipAddress: String
     private let protocols: [String]?
@@ -31,7 +31,7 @@ struct WebSocketUrl {
     }
 
     var url: URL {
-        let path = sheme + "://" + ipAddress + ":\(port)"
+        let path = scheme + "://" + ipAddress + ":\(port)"
         return URL(string: path)! // TODO: pathに不正な文字列が入ったらクラッシュするのでバリデートする
     }
 
