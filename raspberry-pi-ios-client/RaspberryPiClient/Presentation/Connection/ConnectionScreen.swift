@@ -44,7 +44,7 @@ struct ConnectionScreen<ViewModel: ConnectionViewModelProtocol>: View {
                 }
                 .frame(width: screenWidth.width * 0.65)
             }
-            .disabled(viewModel.connectionStatus == .connected)
+            .disabled(viewModel.isConnectButtonDisabled)
             .buttonStyle(.borderedProminent)
             Button(action: {
                 viewModel.disconnect()

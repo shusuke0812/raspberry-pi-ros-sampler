@@ -12,6 +12,7 @@ protocol ConnectionViewModelProtocol: ObservableObject {
     var ipAddress: String { get set }
     var connectionMode: ConnectionMode { get set }
     var connectionStatus: WebSocketConnectionState { get }
+    var isConnectButtonDisabled: Bool { get }
     func connect()
     func disconnect()
 }
@@ -33,6 +34,10 @@ class ConnectionViewModel: ConnectionViewModelProtocol {
         observationTask?.cancel()
     }
     
+    var isConnectButtonDisabled: Bool {
+        ipAddress.trimmingCharacters(in: .whitespaces).isEmpty || connectionStatus == .connected
+    }
+
     private func startObservingConnectionState() {
         observationTask = Task { @MainActor in
             for await state in rosBridgeConnectionRepository.observeConnectionState() {
