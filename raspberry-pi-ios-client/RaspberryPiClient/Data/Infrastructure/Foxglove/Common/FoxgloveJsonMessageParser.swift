@@ -44,14 +44,11 @@ struct FoxgloveJsonMessageParser {
         case .unadvertiseServices:
             guard let body = try? decoder.decode(FoxgloveUnadvertiseServicesBody.self, from: jsonData) else { return nil }
             return .unadvertiseServices(serviceIds: body.serviceIds)
-        case .status:
-            guard let body = try? decoder.decode(FoxgloveStatusBody.self, from: jsonData) else { return nil }
-            return .status(level: body.level, message: body.message, id: body.id)
         case .serviceCallFailure:
             guard let body = try? decoder.decode(FoxgloveServiceCallFailureBody.self, from: jsonData) else { return nil }
             return .serviceCallFailure(serviceId: body.serviceId, callId: body.callId, message: body.message)
         default:
-            return .other(op: header.op)
+            return .other
         }
     }
 }
@@ -63,9 +60,8 @@ enum FoxgloveServerJsonMessage {
     case unadvertise(channelIds: [UInt32])
     case advertiseServices(FoxgloveAdvertiseServices)
     case unadvertiseServices(serviceIds: [UInt32])
-    case status(level: Int, message: String, id: String?)
     case serviceCallFailure(serviceId: UInt32, callId: UInt32, message: String)
-    case other(op: FoxgloveMessageOperation)
+    case other
 }
 
 // MARK: - Private body types for partial parsing
@@ -76,12 +72,6 @@ private struct FoxgloveUnadvertiseBody: Codable {
 
 private struct FoxgloveUnadvertiseServicesBody: Codable {
     let serviceIds: [UInt32]
-}
-
-private struct FoxgloveStatusBody: Codable {
-    let level: Int
-    let message: String
-    let id: String?
 }
 
 private struct FoxgloveServiceCallFailureBody: Codable {

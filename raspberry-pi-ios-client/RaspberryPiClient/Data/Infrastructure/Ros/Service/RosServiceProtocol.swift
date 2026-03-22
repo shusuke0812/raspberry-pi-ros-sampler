@@ -30,6 +30,11 @@ protocol RosCallServiceProtocol: Encodable {
 
 protocol RosCallServiceArgsProtocol: Codable {}
 
+/// CDR 形式でエンコード可能なサービス引数（Foxglove Bridge の encoding: "cdr" 用）
+protocol RosCallServiceCdrEncodable {
+    func encodeCdr() -> Data
+}
+
 extension RosCallServiceProtocol {
     func toJsonString() -> String? {
         guard let jsonData = try? JSONEncoder().encode(self),
@@ -49,3 +54,13 @@ protocol RosServiceResponseHeaderProtocol: RosServiceHeaderProtocol {
 protocol RosServiceResponseValuesProtocol: Codable {}
 
 protocol RosServiceResponseProtocol: Decodable {}
+
+/// CDR 形式からデコード可能なサービスレスポンス（Foxglove Bridge の encoding: "cdr" 用）
+protocol RosServiceResponseCdrDecodable {
+    static func decodeFromCdr(_ data: Data) -> Self?
+}
+
+/// RosServiceResponse を CDR からデコード可能にするプロトコル
+protocol RosServiceResponseCdrDecodableProtocol {
+    static func decodeFromCdr(data: Data, serviceName: String) -> Self?
+}

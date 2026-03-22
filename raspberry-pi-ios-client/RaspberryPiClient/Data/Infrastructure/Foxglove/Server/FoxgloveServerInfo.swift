@@ -50,30 +50,44 @@ struct FoxgloveServerInfo: Codable {
     }
 }
 
-/// サーバーがサポートするオプション機能
+/// サーバーがサポートするオプション機能（Call Service / Topic Publish / Subscribe に必要なもののみ）
 /// Ref: https://github.com/foxglove/ws-protocol/blob/main/docs/spec.md#server-info
 enum Capability: String, Codable, CaseIterable {
-    /// クライアントがチャンネルを advertise してメッセージを送信できる
+    /// クライアントがチャンネルを advertise してメッセージを送信できる（Topic Publish）
     case clientPublish
-    /// クライアントがパラメータの取得・設定ができる
-    case parameters
-    /// クライアントがパラメータ変更を購読できる
-    case parametersSubscribe
-    /// サーバーがバイナリ Time メッセージを配信する
-    case time
-    /// クライアントがサービスを呼び出せる
+    /// クライアントがサービスを呼び出せる（Call Service）
     case services
-    /// クライアントが接続グラフの更新を購読できる
-    case connectionGraph
-    /// クライアントがアセットを取得できる
-    case assets
+
+    /// 未サポートの capability（parameters, time, assets 等）
+    case other = "__other__"
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = try container.decode(String.self)
+        if let known = Capability(rawValue: raw) {
+            self = known
+        } else {
+            self = .other
+        }
+    }
 }
 
-/// Foxglove でサポートされるエンコーディング
+/// Foxglove でサポートされるエンコーディング（Call Service / Topic Publish / Subscribe で使用するもののみ）
 /// Ref: https://github.com/foxglove/ws-protocol/blob/main/docs/spec.md#server-info
 enum SupportedEncodings: String, Codable, CaseIterable {
     case json
-    case protobuf
-    case ros1
     case cdr
+
+    /// 未サポートのエンコーディング（protobuf, ros1 等）
+    case other = "__other__"
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = try container.decode(String.self)
+        if let known = SupportedEncodings(rawValue: raw) {
+            self = known
+        } else {
+            self = .other
+        }
+    }
 }

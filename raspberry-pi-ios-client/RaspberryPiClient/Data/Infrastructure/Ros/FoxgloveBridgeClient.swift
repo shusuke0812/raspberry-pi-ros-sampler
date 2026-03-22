@@ -32,6 +32,9 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
     /// serviceId → サービス名 のマップ（unadvertiseServices 時に使用）
     private(set) var serviceIdToNameMap: [UInt32: String] = [:]
 
+    /// サービス名 → リクエスト encoding のマップ（advertiseServices の request.encoding）
+    private(set) var serviceNameToRequestEncodingMap: [String: String] = [:]
+
     /// クライアント publish 用: トピック名 → channelId のマップ（Client Advertise で登録したチャンネル）
     private var clientPublishTopicToChannelId: [String: UInt32] = [:]
     private var nextClientChannelId: UInt32 = 1
@@ -47,8 +50,8 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
     private let subscriptionQueue = DispatchQueue(label: "jp.shusuke.ota.FoxgloveBridgeClient.subscriptionQueue")
 
     /// callId → サービス呼び出しハンドラ（Service Call Response 受信時に使用）
-    /// 成功時は (Data, serviceName)、失敗時は RosServiceError を渡す
-    private var callIdToHandler: [UInt32: (Result<(Data, String), RosServiceError>) -> Void] = [:]
+    /// 成功時は (Data, serviceName, encoding)、失敗時は RosServiceError を渡す
+    private var callIdToHandler: [UInt32: (Result<(Data, String, String), RosServiceError>) -> Void] = [:]
     private var nextCallId: UInt32 = 1
     private let serviceCallQueue = DispatchQueue(label: "jp.shusuke.ota.FoxgloveBridgeClient.serviceCallQueue")
 
@@ -205,25 +208,37 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
             onMessage(.failure(.failedReceiveMessage(reason: NSError(domain: "FoxgloveBridgeClient", code: -1, userInfo: [NSLocalizedDescriptionKey: "Server does not support services"]))))
             return
         }
-        guard mapQueue.sync(execute: { serverInfo?.supportsJsonEncoding }) == true else {
-            onMessage(.failure(.failedReceiveMessage(reason: NSError(domain: "FoxgloveBridgeClient", code: -1, userInfo: [NSLocalizedDescriptionKey: "Server does not support JSON encoding"]))))
-            return
-        }
 
         guard let serviceId = serviceId(forServiceName: service.header.service) else {
             onMessage(.failure(.failedReceiveMessage(reason: NSError(domain: "FoxgloveBridgeClient", code: -1, userInfo: [NSLocalizedDescriptionKey: "Service '\(service.header.service)' not found in advertiseServices"]))))
             return
         }
 
+        let requestEncoding = mapQueue.sync { serviceNameToRequestEncodingMap[service.header.service] } ?? "cdr"
         let payloadData: Data
-        if let arg = service.arg {
-            guard let encoded = try? JSONEncoder().encode(arg) else {
-                onMessage(.failure(.failedReceiveMessage(reason: NSError(domain: "FoxgloveBridgeClient", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to encode service request"]))))
+        if requestEncoding == "cdr" {
+            guard let arg = service.arg as? RosCallServiceCdrEncodable else {
+                onMessage(.failure(.failedReceiveMessage(reason: NSError(domain: "FoxgloveBridgeClient", code: -1, userInfo: [NSLocalizedDescriptionKey: "Service '\(service.header.service)' requires CDR encoding but arg does not conform to RosCallServiceCdrEncodable"]))))
                 return
             }
-            payloadData = encoded
+            payloadData = arg.encodeCdr()
+        } else if requestEncoding == "json" {
+            guard mapQueue.sync(execute: { serverInfo?.supportsJsonEncoding }) == true else {
+                onMessage(.failure(.failedReceiveMessage(reason: NSError(domain: "FoxgloveBridgeClient", code: -1, userInfo: [NSLocalizedDescriptionKey: "Server does not support JSON encoding"]))))
+                return
+            }
+            if let arg = service.arg {
+                guard let encoded = try? JSONEncoder().encode(arg) else {
+                    onMessage(.failure(.failedReceiveMessage(reason: NSError(domain: "FoxgloveBridgeClient", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to encode service request"]))))
+                    return
+                }
+                payloadData = encoded
+            } else {
+                payloadData = "{}".data(using: .utf8) ?? Data()
+            }
         } else {
-            payloadData = "{}".data(using: .utf8) ?? Data()
+            onMessage(.failure(.failedReceiveMessage(reason: NSError(domain: "FoxgloveBridgeClient", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unsupported encoding: \(requestEncoding)"]))))
+            return
         }
 
         let callId = serviceCallQueue.sync { () -> UInt32 in
@@ -232,11 +247,11 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
             return id
         }
 
-        let handler: (Result<(Data, String), RosServiceError>) -> Void = { result in
+        let handler: (Result<(Data, String, String), RosServiceError>) -> Void = { result in
             switch result {
-            case .success((let data, let serviceName)):
+            case .success((let data, let serviceName, let responseEncoding)):
                 do {
-                    let response = try Self.decodeServiceResponse(T.Response.self, from: data, serviceName: serviceName)
+                    let response = try Self.decodeServiceResponse(T.Response.self, from: data, serviceName: serviceName, encoding: responseEncoding)
                     onMessage(.success(response))
                 } catch {
                     onMessage(.failure(.failedDecodeMessage(reason: error)))
@@ -253,7 +268,7 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
         let binaryData = FoxgloveBinaryMessageEncoder.encodeServiceCallRequest(
             serviceId: serviceId,
             callId: callId,
-            encoding: "json",
+            encoding: requestEncoding,
             payload: payloadData
         )
 
@@ -262,8 +277,17 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
         }
     }
 
-    /// Foxglove の Service Call Response ペイロード（values のみの JSON）を RosServiceResponse にデコードする
-    private static func decodeServiceResponse<R: RosServiceResponseProtocol>(_ type: R.Type, from data: Data, serviceName: String) throws -> R {
+    /// Foxglove の Service Call Response ペイロードを RosServiceResponse にデコードする
+    /// - Parameters:
+    ///   - encoding: レスポンスの encoding（"cdr" または "json"）
+    private static func decodeServiceResponse<R: RosServiceResponseProtocol>(_ type: R.Type, from data: Data, serviceName: String, encoding: String) throws -> R {
+        if encoding == "cdr" {
+            guard let responseType = type as? RosServiceResponseCdrDecodableProtocol.Type,
+                  let response = responseType.decodeFromCdr(data: data, serviceName: serviceName) as? R else {
+                throw NSError(domain: "FoxgloveBridgeClient", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to decode CDR response for service '\(serviceName)'"])
+            }
+            return response
+        }
         let payloadObj = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? [:]
         let wrappedDict: [String: Any] = [
             "op": "service_response",
@@ -294,6 +318,7 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
             channelIdToTopicMap.removeAll()
             serviceNameToIdMap.removeAll()
             serviceIdToNameMap.removeAll()
+            serviceNameToRequestEncodingMap.removeAll()
         }
         clientPublishQueue.sync {
             clientPublishTopicToChannelId.removeAll()
@@ -309,7 +334,7 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
     }
 
     private func clearServiceCallHandlers() {
-        let handlers = serviceCallQueue.sync { () -> [(Result<(Data, String), RosServiceError>) -> Void] in
+        let handlers = serviceCallQueue.sync { () -> [(Result<(Data, String, String), RosServiceError>) -> Void] in
             let h = callIdToHandler.values.map { $0 }
             callIdToHandler.removeAll()
             nextCallId = 1
@@ -317,7 +342,7 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
         }
         let error = RosServiceError.failedReceiveMessage(reason: NSError(domain: "FoxgloveBridgeClient", code: -1, userInfo: [NSLocalizedDescriptionKey: "Connection closed"]))
         for handler in handlers {
-            handler(.failure(error))
+            handler(Result<(Data, String, String), RosServiceError>.failure(error))
         }
     }
 
@@ -356,17 +381,17 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
             }
             info.onResult(.success(payload))
 
-        case .serviceCallResponse(let responseServiceId, let callId, _, let payload):
-            let handler = serviceCallQueue.sync { () -> ((Result<(Data, String), RosServiceError>) -> Void)? in
+        case .serviceCallResponse(let responseServiceId, let callId, let encoding, let payload):
+            let handler = serviceCallQueue.sync { () -> ((Result<(Data, String, String), RosServiceError>) -> Void)? in
                 let h = callIdToHandler[callId]
                 callIdToHandler.removeValue(forKey: callId)
                 return h
             }
             guard let handler else { return }
             let serviceName = mapQueue.sync { serviceIdToNameMap[responseServiceId] } ?? ""
-            handler(.success((payload, serviceName)))
+            handler(.success((payload, serviceName, encoding)))
 
-        case .time, .fetchAssetResponse, .unknown:
+        case .unknown:
             break
         }
     }
@@ -410,10 +435,14 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
 
         case .advertiseServices(let services):
             let newMap = services.serviceNameToIdMap()
+            let encodingMap = services.serviceNameToRequestEncodingMap()
             mapQueue.sync {
                 for (name, serviceId) in newMap {
                     serviceNameToIdMap[name] = serviceId
                     serviceIdToNameMap[serviceId] = name
+                }
+                for (name, encoding) in encodingMap {
+                    serviceNameToRequestEncodingMap[name] = encoding
                 }
             }
 
@@ -423,19 +452,20 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
                     if let name = serviceIdToNameMap[serviceId] {
                         serviceNameToIdMap.removeValue(forKey: name)
                         serviceIdToNameMap.removeValue(forKey: serviceId)
+                        serviceNameToRequestEncodingMap.removeValue(forKey: name)
                     }
                 }
             }
 
         case .serviceCallFailure(_, let callId, let message):
-            let handler = serviceCallQueue.sync { () -> ((Result<(Data, String), RosServiceError>) -> Void)? in
+            let handler = serviceCallQueue.sync { () -> ((Result<(Data, String, String), RosServiceError>) -> Void)? in
                 let h = callIdToHandler[callId]
                 callIdToHandler.removeValue(forKey: callId)
                 return h
             }
             handler?(.failure(.failedReceiveMessage(reason: NSError(domain: "FoxgloveBridgeClient", code: -1, userInfo: [NSLocalizedDescriptionKey: message]))))
 
-        case .status, .other:
+        case .other:
             break
         }
     }

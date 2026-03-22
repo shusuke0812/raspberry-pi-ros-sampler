@@ -23,6 +23,14 @@ struct FoxgloveAdvertiseServices: Codable {
     func serviceNameToIdMap() -> [String: UInt32] {
         Dictionary(uniqueKeysWithValues: services.map { ($0.name, $0.id) })
     }
+
+    /// サービス名 → リクエスト encoding のマッピングを返す（advertiseServices の request.encoding）
+    func serviceNameToRequestEncodingMap() -> [String: String] {
+        Dictionary(uniqueKeysWithValues: services.compactMap { service in
+            guard let encoding = service.request?.encoding else { return nil }
+            return (service.name, encoding)
+        })
+    }
 }
 
 /// Advertise Services メッセージ内のサービス情報（サーバー → クライアント）

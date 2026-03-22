@@ -29,6 +29,7 @@ struct ConnectionScreen<ViewModel: ConnectionViewModelProtocol>: View {
                 .keyboardType(.decimalPad)
                 .frame(width: screenWidth.width * 0.7)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding(.bottom, 30)
             Button(action: {
                 dismissKeyboard()
                 viewModel.connect()

@@ -8,4 +8,12 @@
 import Foundation
 
 /// [std_srvs/srv/Empty.srv](https://github.com/ros2/common_interfaces/blob/jazzy/std_srvs/srv/Empty.srv)
-struct EmptyService: RosCallServiceArgsProtocol, RosServiceResponseValuesProtocol {}
+struct EmptyService: RosCallServiceArgsProtocol, RosServiceResponseValuesProtocol, RosCallServiceCdrEncodable, RosServiceResponseCdrDecodable {
+    func encodeCdr() -> Data {
+        Data(CdrHelpers.encapsulationHeader)
+    }
+
+    static func decodeFromCdr(_ data: Data) -> EmptyService? {
+        data.count >= 4 ? EmptyService() : nil
+    }
+}
