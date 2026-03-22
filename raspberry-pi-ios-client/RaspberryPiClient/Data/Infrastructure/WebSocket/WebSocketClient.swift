@@ -11,7 +11,7 @@ final class WebSocketClient: NSObject {
     private var webSocketTask: URLSessionWebSocketTask?
     private var session: URLSession?
     private var timeoutTask: Task<Void, Never>?
-    private let connectionTimeoutSeconds: TimeInterval = 60.0
+    private let connectionTimeoutSeconds: TimeInterval = 10.0
 
     /// 単一のストリームを保持し、参照のたびに上書きされないようにする
     private var connectionStatesStream: AsyncStream<WebSocketConnectionState>?
