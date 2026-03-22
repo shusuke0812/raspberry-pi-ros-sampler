@@ -9,6 +9,7 @@ import Foundation
 
 enum RosTopicError: Error {
     case alreadySubscribed
+    case channelNotFound
     case failedReceiveMessage(reason: Error)
     case failedConvertStringToData
     case failedDecodeMessageToRosPublish(reason: Error)
@@ -17,6 +18,8 @@ enum RosTopicError: Error {
         switch self {
         case .alreadySubscribed:
             return "すでに購読済みのトピックです"
+        case .channelNotFound:
+            return "トピックが advertise されていません"
         case .failedReceiveMessage(let reason):
             return "メッセージの受信に失敗しました\(reason.localizedDescription)"
         case .failedConvertStringToData:

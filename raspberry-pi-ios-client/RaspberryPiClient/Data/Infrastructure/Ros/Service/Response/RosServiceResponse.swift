@@ -43,3 +43,10 @@ struct RosServiceResponse<T: RosServiceResponseValuesProtocol>: RosServiceRespon
         case result
     }
 }
+
+extension RosServiceResponse: RosServiceResponseCdrDecodableProtocol where T: RosServiceResponseCdrDecodable {
+    static func decodeFromCdr(data: Data, serviceName: String) -> RosServiceResponse<T>? {
+        guard let values = T.decodeFromCdr(data) else { return nil }
+        return RosServiceResponse(service: serviceName, values: values, result: true)
+    }
+}

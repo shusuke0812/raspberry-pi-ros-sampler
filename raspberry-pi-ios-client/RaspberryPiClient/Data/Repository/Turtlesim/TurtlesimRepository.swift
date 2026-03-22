@@ -15,11 +15,11 @@ protocol TurtlesimRepositoryProtocol {
 }
 
 class TurtlesimRepository: TurtlesimRepositoryProtocol {
-    private let rosBridgeClient: RosBridgeMessageProtocol
+    private let connectionRepository: RosBridgeConnectionRepositoryProtocol
     private let turtleName = "turtle2"
 
-    init(rosBridgeClient: RosBridgeMessageProtocol = RosBridgeClient.shared) {
-        self.rosBridgeClient = rosBridgeClient
+    init(connectionRepository: RosBridgeConnectionRepositoryProtocol = RosBridgeConnectionRepository()) {
+        self.connectionRepository = connectionRepository
     }
 
     /// [Spawn Request](https://docs.ros.org/en/api/turtlesim/html/srv/Spawn.html)
@@ -29,7 +29,7 @@ class TurtlesimRepository: TurtlesimRepositoryProtocol {
             service: "/spawn",
             arg: arg
         )
-        rosBridgeClient.callService(service: callService) { result in
+        connectionRepository.activeMessageClient.callService(service: callService) { result in
             switch result {
             case .success(_):
                 onMessage(.success(()))
@@ -52,7 +52,7 @@ class TurtlesimRepository: TurtlesimRepositoryProtocol {
             topic: "/\(turtleName)/cmd_vel",
             message: message
         )
-        rosBridgeClient.publish(topic: topic)
+        connectionRepository.activeMessageClient.publish(topic: topic)
     }
 
     func reset() {
@@ -61,7 +61,7 @@ class TurtlesimRepository: TurtlesimRepositoryProtocol {
             service: "/reset",
             arg: arg
         )
-        rosBridgeClient.callService(service: callService) { result in
+        connectionRepository.activeMessageClient.callService(service: callService) { result in
             // do nothing
         }
     }

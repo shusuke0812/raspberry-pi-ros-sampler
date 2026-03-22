@@ -9,9 +9,18 @@ import Foundation
 
 protocol RosMessageProtocol: Codable {
     func toJsonString() -> String
+    /// Foxglove Bridge の Client Advertise で使用する ROS メッセージ型名（例: geometry_msgs/msg/Twist）
+    static var rosSchemaName: String { get }
+}
+
+/// CDR 形式からデコード可能な ROS トピックメッセージ（Foxglove Bridge の encoding: "cdr" 用）
+protocol RosTopicMessageCdrDecodable: RosMessageProtocol {
+    static func decodeFromCdr(data: Data) -> Self?
 }
 
 extension RosMessageProtocol {
+    static var rosSchemaName: String { "unknown" }
+
     func toJsonString() -> String {
         guard let jsonData = try? JSONEncoder().encode(self),
               let jsonString = String(data: jsonData, encoding: .utf8) else {
