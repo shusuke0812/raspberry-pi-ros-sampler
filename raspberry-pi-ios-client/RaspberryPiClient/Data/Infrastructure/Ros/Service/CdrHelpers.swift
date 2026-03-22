@@ -10,7 +10,10 @@ import Foundation
 
 /// CDR 形式の共通ヘルパー（複数サービスで共用）
 enum CdrHelpers {
-    /// CDR encapsulation header (CDR_BE, little-endian)
+    /// CDR カプセル化ヘッダー（4 バイト）
+    /// - バイト 0-1: 0x00 0x01 → CDR_LE (Little Endian) を表す（0x00 0x00 の場合は CDR_BE）
+    /// - ROS 2 は通常 CDR_LE を使用
+    /// - デコード時はこの 4 バイトをスキップしてペイロードを読み込む
     static let encapsulationHeader: [UInt8] = [0x00, 0x01, 0x00, 0x00]
 
     /// CDR string をエンコード（4byte length + UTF-8 + NUL）
