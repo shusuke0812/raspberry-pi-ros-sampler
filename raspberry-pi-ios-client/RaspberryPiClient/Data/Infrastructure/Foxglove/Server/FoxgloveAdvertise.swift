@@ -23,6 +23,11 @@ struct FoxgloveAdvertise: Codable {
     func topicToChannelIdMap() -> [String: UInt32] {
         Dictionary(uniqueKeysWithValues: channels.map { ($0.topic, $0.id) })
     }
+
+    /// トピック名 → encoding のマッピングを返す（Message Data ペイロードのデコードに使用）
+    func topicToEncodingMap() -> [String: String] {
+        Dictionary(uniqueKeysWithValues: channels.map { ($0.topic, $0.encoding) })
+    }
 }
 
 /// Advertise メッセージ内のチャンネル情報（サーバー → クライアント）

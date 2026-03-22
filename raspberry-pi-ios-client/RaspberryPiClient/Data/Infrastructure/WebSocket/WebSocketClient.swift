@@ -120,8 +120,10 @@ final class WebSocketClient: NSObject {
                 let message = try await task.receive()
                 switch message {
                 case .string(let text):
+                    print("text=\(text)")
                     messageContinuation?.yield(text)
                 case .data(let data):
+                    print("data=\(String(data: data, encoding: .utf8))")
                     binaryMessageContinuation?.yield(data)
                 @unknown default:
                     assertionFailure("Unexpected receive message type: \(message)")

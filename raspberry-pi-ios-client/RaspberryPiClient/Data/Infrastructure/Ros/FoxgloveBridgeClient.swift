@@ -23,6 +23,9 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
     /// トピック名 → channelId のマップ（subscribe 時に使用）
     private(set) var topicToChannelIdMap: [String: UInt32] = [:]
 
+    /// トピック名 → encoding のマップ（Message Data ペイロードのデコードに使用。ROS2 は "cdr"）
+    private var topicToEncodingMap: [String: String] = [:]
+
     /// channelId → トピック名 のマップ（unadvertise 時に使用）
     private(set) var channelIdToTopicMap: [UInt32: String] = [:]
 
@@ -140,7 +143,7 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
             }
         }
 
-        guard let channelId = channelId(forTopic: topic.topic) else {
+        guard let channelId = mapQueue.sync(execute: { topicToChannelIdMap[topic.topic] }) else {
             onMessage(.failure(.channelNotFound))
             return
         }
@@ -159,11 +162,19 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
             return
         }
 
-        let info = FoxgloveSubscriptionInfo(topic: topic.topic) { result in
+        let encoding = mapQueue.sync { topicToEncodingMap[topic.topic] } ?? "json"
+        let info = FoxgloveSubscriptionInfo(topic: topic.topic) { [encoding] result in
             switch result {
             case .success(let payload):
                 do {
-                    let decoded = try topic.decodeMessageFromPayload(payload)
+                    let decoded: RosTopicPublish<T>
+                    if encoding == "cdr",
+                       let cdrType = T.self as? any RosTopicMessageCdrDecodable.Type,
+                       let msg = cdrType.decodeFromCdr(data: payload) as? T {
+                        decoded = RosTopicPublish(id: nil, topic: topic.topic, message: msg)
+                    } else {
+                        decoded = try topic.decodeMessageFromPayload(payload)
+                    }
                     onMessage(.success(decoded))
                 } catch {
                     onMessage(.failure(.failedDecodeMessageToRosPublish(reason: error)))
@@ -315,6 +326,7 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
         mapQueue.sync {
             serverInfo = nil
             topicToChannelIdMap.removeAll()
+            topicToEncodingMap.removeAll()
             channelIdToTopicMap.removeAll()
             serviceNameToIdMap.removeAll()
             serviceIdToNameMap.removeAll()
@@ -416,10 +428,14 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
 
         case .advertise(let advertise):
             let newMap = advertise.topicToChannelIdMap()
+            let encodingMap = advertise.topicToEncodingMap()
             mapQueue.sync {
                 for (topic, channelId) in newMap {
                     topicToChannelIdMap[topic] = channelId
                     channelIdToTopicMap[channelId] = topic
+                }
+                for (topic, encoding) in encodingMap {
+                    topicToEncodingMap[topic] = encoding
                 }
             }
 
@@ -428,6 +444,7 @@ class FoxgloveBridgeClient: RosBridgeConnectionProtocol, RosBridgeMessageProtoco
                 for channelId in channelIds {
                     if let topic = channelIdToTopicMap[channelId] {
                         topicToChannelIdMap.removeValue(forKey: topic)
+                        topicToEncodingMap.removeValue(forKey: topic)
                         channelIdToTopicMap.removeValue(forKey: channelId)
                     }
                 }

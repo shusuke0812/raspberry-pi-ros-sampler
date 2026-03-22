@@ -13,6 +13,11 @@ protocol RosMessageProtocol: Codable {
     static var rosSchemaName: String { get }
 }
 
+/// CDR 形式からデコード可能な ROS トピックメッセージ（Foxglove Bridge の encoding: "cdr" 用）
+protocol RosTopicMessageCdrDecodable: RosMessageProtocol {
+    static func decodeFromCdr(data: Data) -> Self?
+}
+
 extension RosMessageProtocol {
     static var rosSchemaName: String { "unknown" }
 
