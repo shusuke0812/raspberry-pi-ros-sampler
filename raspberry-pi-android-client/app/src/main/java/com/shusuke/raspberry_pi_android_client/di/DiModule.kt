@@ -1,5 +1,19 @@
 package com.shusuke.raspberry_pi_android_client.di
 
-// Koin モジュール（infrastructureModule, repositoryModule, viewModelModule）をここに追加予定
+import org.koin.core.context.startKoin
 
-internal object DiPlaceholder
+/**
+ * Koin DI のモジュール定義。
+ */
+object DiModule {
+
+    /**
+     * 全モジュールを登録して Koin を初期化する。
+     * Application の onCreate で呼び出す。
+     */
+    fun init() {
+        startKoin {
+            modules(infrastructureModule)
+        }
+    }
+}
