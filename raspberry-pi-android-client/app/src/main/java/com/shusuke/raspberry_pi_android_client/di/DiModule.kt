@@ -1,5 +1,7 @@
 package com.shusuke.raspberry_pi_android_client.di
 
+import android.app.Application
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
 /**
@@ -11,9 +13,10 @@ object DiModule {
      * 全モジュールを登録して Koin を初期化する。
      * Application の onCreate で呼び出す。
      */
-    fun init() {
+    fun init(application: Application) {
         startKoin {
-            modules(infrastructureModule, repositoryModule)
+            androidContext(application)
+            modules(infrastructureModule, repositoryModule, viewModelModule)
         }
     }
 }
