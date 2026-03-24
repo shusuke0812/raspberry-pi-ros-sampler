@@ -13,7 +13,7 @@ object DiModule {
      */
     fun init() {
         startKoin {
-            modules(infrastructureModule)
+            modules(infrastructureModule, repositoryModule)
         }
     }
 }
