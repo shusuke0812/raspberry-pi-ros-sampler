@@ -12,9 +12,13 @@ import org.koin.dsl.module
  * - [WebSocketClient]: OkHttp ベースの WebSocket クライアント
  * - [RosBridgeClient]: ROS Bridge プロトコル対応クライアント（ポート 9090）
  * - [FoxgloveBridgeClient]: Foxglove プロトコル対応クライアント（ポート 8765、サブプロトコル foxglove.sdk.v1）
+ *
+ * [WebSocketClient] はコンストラクタに [OkHttpClient] のデフォルト引数がある。
+ * [singleOf]（リフレクション）では Koin が [OkHttpClient] をコンテナから解決しようとして失敗するため、
+ * Kotlin のデフォルト引数を使うファクトリで登録する。
  */
 val infrastructureModule = module {
-    singleOf(::WebSocketClient)
+    single { WebSocketClient() }
     singleOf(::RosBridgeClient)
     singleOf(::FoxgloveBridgeClient)
 }

@@ -34,7 +34,9 @@ class ConnectionViewModel(
         _ipAddress,
         _connectionStatus,
     ) { ip, status ->
-        ip.isBlank() || status is WebSocketConnectionState.Connected
+        ip.trim().isBlank() ||
+            status is WebSocketConnectionState.Connecting ||
+            status is WebSocketConnectionState.Connected
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),

@@ -3,4 +3,7 @@
     <string name="tab_connection">Connection</string>
     <string name="tab_topic">Topic</string>
     <string name="tab_service">Service</string>
+    <string name="connection_ip_address_label">IP Address</string>
+    <string name="connection_connect">Connect</string>
+    <string name="connection_disconnect">Disconnect</string>
 </resources>
