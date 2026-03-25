@@ -1,4 +1,4 @@
-package com.shusuke.raspberry_pi_android_client.presentation.service.compose
+package com.shusuke.raspberry_pi_android_client.presentation.screen.service.compose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,7 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shusuke.raspberry_pi_android_client.R
-import com.shusuke.raspberry_pi_android_client.presentation.service.CallServiceViewModel
+import com.shusuke.raspberry_pi_android_client.presentation.screen.service.CallServiceViewModel
 
 /**
  * Turtlesim サービス呼び出し画面（iOS [CallServiceScreen] に相当）。

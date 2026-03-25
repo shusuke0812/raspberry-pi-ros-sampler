@@ -1,4 +1,4 @@
-package com.shusuke.raspberry_pi_android_client.presentation.connection.compose
+package com.shusuke.raspberry_pi_android_client.presentation.screen.connection.compose
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -38,7 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shusuke.raspberry_pi_android_client.R
 import com.shusuke.raspberry_pi_android_client.data.infrastructure.websocket.WebSocketConnectionState
 import com.shusuke.raspberry_pi_android_client.data.repository.connection.ConnectionMode
-import com.shusuke.raspberry_pi_android_client.presentation.connection.ConnectionViewModel
+import com.shusuke.raspberry_pi_android_client.presentation.screen.connection.ConnectionViewModel
 
 /**
  * 接続画面（iOS [ConnectionScreen] に相当）。

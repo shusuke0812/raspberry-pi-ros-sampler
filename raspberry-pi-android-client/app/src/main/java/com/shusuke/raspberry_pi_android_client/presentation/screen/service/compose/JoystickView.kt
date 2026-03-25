@@ -1,4 +1,4 @@
-package com.shusuke.raspberry_pi_android_client.presentation.service.compose
+package com.shusuke.raspberry_pi_android_client.presentation.screen.service.compose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures

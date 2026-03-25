@@ -1,4 +1,4 @@
-package com.shusuke.raspberry_pi_android_client.presentation.topic.compose
+package com.shusuke.raspberry_pi_android_client.presentation.screen.topic.compose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,12 +14,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -32,7 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.shusuke.raspberry_pi_android_client.R
-import com.shusuke.raspberry_pi_android_client.presentation.topic.TopicMonitorViewModel
+import com.shusuke.raspberry_pi_android_client.presentation.screen.topic.TopicMonitorViewModel
 
 /**
  * トピック監視画面（iOS [TopicMonitorScreen] に相当）。
@@ -43,7 +41,6 @@ fun TopicMonitorScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val isErrorPresented by viewModel.isErrorPresented.collectAsStateWithLifecycle()
 
     val focusManager = LocalFocusManager.current
 
@@ -123,22 +120,6 @@ fun TopicMonitorScreen(
             }
 
             TopicMonitorFooter(viewModel = viewModel)
-        }
-
-        if (isErrorPresented) {
-            val failure = uiState as? TopicMonitorViewModel.UiState.Failure
-            if (failure != null) {
-                AlertDialog(
-                    onDismissRequest = viewModel::hideErrorAlert,
-                    confirmButton = {
-                        TextButton(onClick = viewModel::hideErrorAlert) {
-                            Text(text = stringResource(R.string.error_dialog_ok))
-                        }
-                    },
-                    title = { Text(text = stringResource(R.string.error_dialog_title)) },
-                    text = { Text(text = failure.error.message ?: "") },
-                )
-            }
         }
     }
 }

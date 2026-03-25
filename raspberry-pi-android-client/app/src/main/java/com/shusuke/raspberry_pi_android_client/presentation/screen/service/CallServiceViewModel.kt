@@ -1,10 +1,10 @@
-package com.shusuke.raspberry_pi_android_client.presentation.service
+package com.shusuke.raspberry_pi_android_client.presentation.screen.service
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shusuke.raspberry_pi_android_client.data.infrastructure.ros.service.RosServiceError
 import com.shusuke.raspberry_pi_android_client.data.repository.turtlesim.TurtlesimRepository
-import com.shusuke.raspberry_pi_android_client.presentation.service.compose.KnobPosition
+import com.shusuke.raspberry_pi_android_client.presentation.screen.service.compose.KnobPosition
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

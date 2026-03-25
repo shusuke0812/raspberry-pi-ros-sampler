@@ -1,8 +1,8 @@
 package com.shusuke.raspberry_pi_android_client.di
 
-import com.shusuke.raspberry_pi_android_client.presentation.connection.ConnectionViewModel
-import com.shusuke.raspberry_pi_android_client.presentation.service.CallServiceViewModel
-import com.shusuke.raspberry_pi_android_client.presentation.topic.TopicMonitorViewModel
+import com.shusuke.raspberry_pi_android_client.presentation.screen.connection.ConnectionViewModel
+import com.shusuke.raspberry_pi_android_client.presentation.screen.service.CallServiceViewModel
+import com.shusuke.raspberry_pi_android_client.presentation.screen.topic.TopicMonitorViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 

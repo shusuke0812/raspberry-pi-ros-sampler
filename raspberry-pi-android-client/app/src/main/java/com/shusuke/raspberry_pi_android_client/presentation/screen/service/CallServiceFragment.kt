@@ -1,4 +1,4 @@
-package com.shusuke.raspberry_pi_android_client.presentation.topic
+package com.shusuke.raspberry_pi_android_client.presentation.screen.service
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,13 +10,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
-import com.shusuke.raspberry_pi_android_client.presentation.topic.compose.TopicMonitorScreen
+import com.shusuke.raspberry_pi_android_client.presentation.screen.service.compose.CallServiceScreen
 import com.shusuke.raspberry_pi_android_client.ui.theme.RaspberrypiandroidclientTheme
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class TopicMonitorFragment : Fragment() {
+class CallServiceFragment : Fragment() {
 
-    private val viewModel: TopicMonitorViewModel by viewModel()
+    private val viewModel: CallServiceViewModel by viewModel()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -27,7 +27,7 @@ class TopicMonitorFragment : Fragment() {
         setContent {
             RaspberrypiandroidclientTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    TopicMonitorScreen(viewModel = viewModel)
+                    CallServiceScreen(viewModel = viewModel)
                 }
             }
         }

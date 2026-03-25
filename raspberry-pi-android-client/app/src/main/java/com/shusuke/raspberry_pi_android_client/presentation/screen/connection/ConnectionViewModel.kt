@@ -1,4 +1,4 @@
-package com.shusuke.raspberry_pi_android_client.presentation.connection
+package com.shusuke.raspberry_pi_android_client.presentation.screen.connection
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

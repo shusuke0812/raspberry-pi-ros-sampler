@@ -1,4 +1,4 @@
-package com.shusuke.raspberry_pi_android_client.presentation.service.compose
+package com.shusuke.raspberry_pi_android_client.presentation.screen.service.compose
 
 import kotlin.math.atan2
 import kotlin.math.floor

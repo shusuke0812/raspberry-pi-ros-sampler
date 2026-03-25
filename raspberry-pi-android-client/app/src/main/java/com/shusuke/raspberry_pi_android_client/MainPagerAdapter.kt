@@ -3,9 +3,9 @@ package com.shusuke.raspberry_pi_android_client
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.shusuke.raspberry_pi_android_client.presentation.connection.ConnectionFragment
-import com.shusuke.raspberry_pi_android_client.presentation.service.CallServiceFragment
-import com.shusuke.raspberry_pi_android_client.presentation.topic.TopicMonitorFragment
+import com.shusuke.raspberry_pi_android_client.presentation.screen.connection.ConnectionFragment
+import com.shusuke.raspberry_pi_android_client.presentation.screen.service.CallServiceFragment
+import com.shusuke.raspberry_pi_android_client.presentation.screen.topic.TopicMonitorFragment
 
 class MainPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activity) {
 
