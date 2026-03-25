@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shusuke.raspberry_pi_android_client.data.infrastructure.ros.service.RosServiceError
 import com.shusuke.raspberry_pi_android_client.data.repository.turtlesim.TurtlesimRepository
+import com.shusuke.raspberry_pi_android_client.presentation.service.compose.KnobPosition
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -31,9 +32,9 @@ class CallServiceViewModel(
 
         val title: String
             get() = when (this) {
-                is Standby -> "待機中"
+                is Standby -> "Standby"
                 is Loading -> ""
-                is Success -> "移動中…\n$message"
+                is Success -> "Moving...\n$message"
                 is Failure -> error.message ?: ""
             }
 
@@ -87,7 +88,9 @@ class CallServiceViewModel(
                     startMoveTurtle()
                 },
                 onFailure = { e ->
-                    _uiState.value = UiState.Failure(e as RosServiceError)
+                    val err = e as? RosServiceError
+                        ?: RosServiceError.FailedReceiveMessage(e)
+                    _uiState.value = UiState.Failure(err)
                 },
             )
         }

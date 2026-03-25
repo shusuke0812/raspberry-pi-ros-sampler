@@ -1,4 +1,4 @@
-package com.shusuke.raspberry_pi_android_client.presentation.service
+package com.shusuke.raspberry_pi_android_client.presentation.service.compose
 
 import kotlin.math.atan2
 import kotlin.math.floor
@@ -21,7 +21,11 @@ data class KnobPosition(
 
         fun parentCircleWidth(screenWidthPx: Float): Float = screenWidthPx * 0.625f
 
+        fun shadowCircleWidth(screenWidthPx: Float): Float = screenWidthPx * 0.375f
+
         fun knobCircleWidth(screenWidthPx: Float): Float = screenWidthPx * 0.25f
+
+        fun chevronWidth(screenWidthPx: Float): Float = screenWidthPx * 0.875f
     }
 
     private val maxDistance: Float

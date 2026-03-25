@@ -6,4 +6,6 @@
     <string name="connection_ip_address_label">IP Address</string>
     <string name="connection_connect">Connect</string>
     <string name="connection_disconnect">Disconnect</string>
+    <string name="service_spawn">Spawn</string>
+    <string name="service_reset">Reset</string>
 </resources>

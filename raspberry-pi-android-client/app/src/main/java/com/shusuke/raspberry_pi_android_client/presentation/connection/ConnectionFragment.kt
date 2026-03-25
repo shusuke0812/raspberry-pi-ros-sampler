@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
+import com.shusuke.raspberry_pi_android_client.presentation.connection.compose.ConnectionScreen
 import com.shusuke.raspberry_pi_android_client.ui.theme.RaspberrypiandroidclientTheme
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
