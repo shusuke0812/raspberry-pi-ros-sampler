@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">raspberry-pi-android-client</string>
+    <string name="app_name">raspberry-pi-client</string>
     <string name="tab_connection">Connection</string>
     <string name="tab_topic">Topic</string>
     <string name="tab_service">Service</string>

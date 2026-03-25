@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.shusuke.raspberry_pi_android_client"
+    namespace = "com.shusuke.raspberry_pi_client"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.shusuke.raspberry_pi_android_client"
+        applicationId = "com.shusuke.raspberry_pi_client"
         minSdk = 28
         targetSdk = 36
         versionCode = 1
