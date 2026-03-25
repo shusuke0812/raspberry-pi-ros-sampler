@@ -66,7 +66,7 @@ class TopicMonitorViewModel(
                             _uiState.value = UiState.Success(messages.toList())
                         },
                         onFailure = { err ->
-                            _uiState.value = UiState.Failure(err as RosTopicError)
+                            _uiState.value = UiState.Failure(err.toRosTopicError())
                             _isErrorPresented.value = true
                         },
                     )
@@ -95,7 +95,7 @@ class TopicMonitorViewModel(
                             _uiState.value = UiState.Success(messages.toList())
                         },
                         onFailure = { err ->
-                            _uiState.value = UiState.Failure(err as RosTopicError)
+                            _uiState.value = UiState.Failure(err.toRosTopicError())
                             _isErrorPresented.value = true
                         },
                     )
@@ -111,4 +111,7 @@ class TopicMonitorViewModel(
         helloTopicRepository.unsubscribeHelloSignal()
         _uiState.value = UiState.Standby
     }
+
+    private fun Throwable.toRosTopicError(): RosTopicError =
+        this as? RosTopicError ?: RosTopicError.FailedReceiveMessage(this)
 }

@@ -8,4 +8,10 @@
     <string name="connection_disconnect">Disconnect</string>
     <string name="service_spawn">Spawn</string>
     <string name="service_reset">Reset</string>
+    <string name="topic_start_hello">Start Hello</string>
+    <string name="topic_end_hello">End Hello</string>
+    <string name="topic_start_hello_signal">Start Hello Signal</string>
+    <string name="topic_end_hello_signal">End Hello Signal</string>
+    <string name="error_dialog_title">エラー</string>
+    <string name="error_dialog_ok">OK</string>
 </resources>
