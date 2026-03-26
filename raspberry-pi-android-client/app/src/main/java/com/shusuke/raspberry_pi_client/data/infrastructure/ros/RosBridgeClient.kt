@@ -14,7 +14,6 @@ import com.shusuke.raspberry_pi_client.data.infrastructure.websocket.WebSocketCo
 import com.shusuke.raspberry_pi_client.data.infrastructure.websocket.WebSocketUrl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -31,8 +30,6 @@ class RosBridgeClient(
         mutableMapOf<String, MutableList<(Result<String>) -> Unit>>()
     private val serviceMessageHandlers =
         mutableMapOf<String, MutableList<(Result<String>) -> Unit>>()
-
-    private var messageCollectJob: Job? = null
 
     init {
         observeReceivedMessage()
@@ -52,11 +49,11 @@ class RosBridgeClient(
 
     /** ROS Bridge を切断する。 */
     fun disconnect() {
-        messageCollectJob?.cancel()
-        messageCollectJob = null
         topicMessageHandlers.clear()
         serviceMessageHandlers.clear()
         webSocketClient.disconnect()
+        // textMessages の collect はキャンセルしない。キャンセルすると再接続後に
+        // 受信ループが動かず subscribe してもメッセージが届かない。
     }
 
     /**
@@ -282,7 +279,7 @@ class RosBridgeClient(
     // region Message routing
 
     private fun observeReceivedMessage() {
-        messageCollectJob = scope.launch {
+        scope.launch {
             webSocketClient.textMessages.collect { message ->
                 val header = runCatching {
                     json.decodeFromString<HandleRosBridgeMessageResponse>(message)

@@ -22,7 +22,6 @@ import com.shusuke.raspberry_pi_client.data.infrastructure.websocket.WebSocketCo
 import com.shusuke.raspberry_pi_client.data.infrastructure.websocket.WebSocketUrl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -73,9 +72,6 @@ class FoxgloveBridgeClient(
     private val callIdToHandler = mutableMapOf<UInt, (Result<Pair<ByteArray, String>>) -> Unit>()
     private val nextCallId = AtomicInteger(1)
 
-    private var textCollectJob: Job? = null
-    private var binaryCollectJob: Job? = null
-
     init {
         observeReceivedMessage()
     }
@@ -94,16 +90,14 @@ class FoxgloveBridgeClient(
 
     /** Foxglove Bridge を切断する。 */
     fun disconnect() {
-        textCollectJob?.cancel()
-        textCollectJob = null
-        binaryCollectJob?.cancel()
-        binaryCollectJob = null
         runBlocking {
             clearMaps()
             clearSubscriptions()
             clearServiceCallHandlers()
         }
         webSocketClient.disconnect()
+        // text/binary の collect はキャンセルしない。キャンセルすると再接続後に
+        // 受信ループが動かずメッセージが届かない。
     }
 
     /**
@@ -364,12 +358,12 @@ class FoxgloveBridgeClient(
     // region Message handling
 
     private fun observeReceivedMessage() {
-        textCollectJob = scope.launch {
+        scope.launch {
             webSocketClient.textMessages.collect { message ->
                 handleJsonMessage(message)
             }
         }
-        binaryCollectJob = scope.launch {
+        scope.launch {
             webSocketClient.binaryMessages.collect { data ->
                 handleBinaryMessage(data)
             }
