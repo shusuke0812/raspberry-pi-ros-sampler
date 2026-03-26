@@ -297,8 +297,15 @@ class RosBridgeClient(
     // endregion
 
     companion object {
+        /**
+         * rosbridge の送信用 JSON では `op` 等が必須。kotlinx.serialization は既定で
+         * プロパティのデフォルト値をエンコードしないため [encodeDefaults] を有効にする。
+         * [explicitNulls] を false にし、`id` / `throttle_rate` が null のときキー自体を送らない。
+         */
         private val json = Json {
             ignoreUnknownKeys = true
+            encodeDefaults = true
+            explicitNulls = false
         }
     }
 }
