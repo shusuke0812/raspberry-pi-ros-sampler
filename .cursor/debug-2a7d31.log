@@ -1,9 +1,0 @@
-{"sessionId":"2a7d31","hypothesisId":"H5","location":"RaspberryPiApplication.onCreate","message":"after super, before DiModule.init","timestamp":1774361549377,"runId":"run1","data":{}}
-{"sessionId":"2a7d31","hypothesisId":"H5","location":"RaspberryPiApplication.onCreate","message":"after DiModule.init","timestamp":1774361549385,"runId":"run1","data":{}}
-{"sessionId":"2a7d31","hypothesisId":"H1","location":"ConnectionFragment.onCreateView","message":"before ComposeView","timestamp":1774361549485,"runId":"run1","data":{}}
-{"sessionId":"2a7d31","hypothesisId":"H1","location":"ConnectionFragment.onCreate","message":"entry","timestamp":1774361549485,"runId":"run1","data":{}}
-{"sessionId":"2a7d31","hypothesisId":"H1","location":"ConnectionFragment.setContent","message":"lambda entry","timestamp":1774361549657,"runId":"run1","data":{}}
-{"sessionId":"2a7d31","hypothesisId":"H1","location":"ConnectionFragment.setContent","message":"before viewModel delegate","timestamp":1774361549672,"runId":"run1","data":{}}
-{"sessionId":"2a7d31","hypothesisId":"H4","location":"ConnectionViewModel.init","message":"entry","timestamp":1774361549681,"runId":"run1","data":{}}
-{"sessionId":"2a7d31","hypothesisId":"H1","location":"ConnectionFragment.setContent","message":"after viewModel resolved","timestamp":1774361549681,"runId":"run1","data":{"vmClass":"ConnectionViewModel"}}
-{"sessionId":"2a7d31","hypothesisId":"H2","location":"ConnectionScreen","message":"remember before collectAsStateWithLifecycle","timestamp":1774361549684,"runId":"run1","data":{}}
