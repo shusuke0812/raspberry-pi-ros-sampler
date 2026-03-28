@@ -73,7 +73,8 @@ class FoxgloveBridgeClient(
     private val nextSubscriptionId = AtomicInteger(1)
 
     private val serviceCallMutex = Mutex()
-    private val callIdToHandler = mutableMapOf<UInt, (Result<Pair<ByteArray, String>>) -> Unit>()
+    private val callIdToHandler =
+        mutableMapOf<UInt, (Result<Triple<ByteArray, String, FoxgloveWireEncoding>>) -> Unit>()
     private val nextCallId = AtomicInteger(1)
 
     init {
@@ -373,20 +374,48 @@ class FoxgloveBridgeClient(
             serviceCallMutex.withLock {
                 callIdToHandler[callId] = { result ->
                     result.fold(
-                        onSuccess = { (payload, serviceName) ->
-                            runCatching {
-                                val valuesJson = payload.decodeToString()
-                                val wrappedJson = buildJsonObject {
-                                    put("op", "service_response")
-                                    put("service", serviceName)
-                                    put("result", true)
-                                    put("values", json.parseToJsonElement(valuesJson))
+                        onSuccess = { (payload, serviceName, responseEncoding) ->
+                            when (responseEncoding) {
+                                FoxgloveWireEncoding.Json -> {
+                                    runCatching {
+                                        val valuesJson = payload.decodeToString()
+                                        val wrappedJson = buildJsonObject {
+                                            put("op", "service_response")
+                                            put("service", serviceName)
+                                            put("result", true)
+                                            put("values", json.parseToJsonElement(valuesJson))
+                                        }
+                                        json.decodeFromJsonElement(responseSerializer, wrappedJson)
+                                    }.fold(
+                                        onSuccess = { decoded -> onMessage(Result.success(decoded)) },
+                                        onFailure = { e ->
+                                            onMessage(Result.failure(RosServiceError.FailedDecodeMessage(e)))
+                                        },
+                                    )
                                 }
-                                json.decodeFromJsonElement(responseSerializer, wrappedJson)
-                            }.fold(
-                                onSuccess = { decoded -> onMessage(Result.success(decoded)) },
-                                onFailure = { e -> onMessage(Result.failure(RosServiceError.FailedDecodeMessage(e))) },
-                            )
+                                FoxgloveWireEncoding.Cdr -> {
+                                    onMessage(
+                                        Result.failure(
+                                            RosServiceError.FailedDecodeMessage(
+                                                Exception(
+                                                    "CDR encoding for service response is not supported",
+                                                ),
+                                            ),
+                                        ),
+                                    )
+                                }
+                                is FoxgloveWireEncoding.Unsupported -> {
+                                    onMessage(
+                                        Result.failure(
+                                            RosServiceError.FailedDecodeMessage(
+                                                Exception(
+                                                    "Unsupported encoding for service response: ${responseEncoding.raw}",
+                                                ),
+                                            ),
+                                        ),
+                                    )
+                                }
+                            }
                         },
                         onFailure = { e -> onMessage(Result.failure(RosServiceError.FailedReceiveMessage(e))) },
                     )
@@ -504,7 +533,12 @@ class FoxgloveBridgeClient(
                     val serviceName = mapMutex.withLock {
                         serviceIdToNameMap[parsed.serviceId] ?: ""
                     }
-                    handler?.invoke(Result.success(parsed.payload to serviceName))
+                    val responseEncoding = FoxgloveWireEncoding.parse(parsed.encoding)
+                    handler?.invoke(
+                        Result.success(
+                            Triple(parsed.payload, serviceName, responseEncoding),
+                        ),
+                    )
                 }
                 is FoxgloveServerBinaryMessage.Unknown -> Unit
             }
