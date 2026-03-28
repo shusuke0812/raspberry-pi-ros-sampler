@@ -1,5 +1,6 @@
 package com.shusuke.raspberry_pi_client.data.infrastructure.foxglove
 
+import android.util.Log
 import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.binary.FoxgloveBinaryMessageEncoder
 import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.binary.FoxgloveBinaryMessageParser
 import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.binary.FoxgloveServerBinaryMessage
@@ -17,6 +18,8 @@ import com.shusuke.raspberry_pi_client.data.infrastructure.ros.service.RosServic
 import com.shusuke.raspberry_pi_client.data.infrastructure.ros.topic.RosTopicError
 import com.shusuke.raspberry_pi_client.data.infrastructure.ros.topic.RosTopicPublish
 import com.shusuke.raspberry_pi_client.data.infrastructure.ros.topic.RosTopicSubscribe
+import com.shusuke.raspberry_pi_client.data.infrastructure.ros.topic.message.Int8Message
+import com.shusuke.raspberry_pi_client.data.infrastructure.ros.topic.message.StringMessage
 import com.shusuke.raspberry_pi_client.data.infrastructure.websocket.WebSocketClient
 import com.shusuke.raspberry_pi_client.data.infrastructure.websocket.WebSocketConnectionState
 import com.shusuke.raspberry_pi_client.data.infrastructure.websocket.WebSocketUrl
@@ -199,18 +202,55 @@ class FoxgloveBridgeClient(
             val subscriptionId = nextSubscriptionId.getAndIncrement().toUInt()
             val encoding = mapMutex.withLock { topicToEncodingMap[topic.topic] } ?: "json"
 
-            val publishSerializer = RosTopicPublish.serializer(messageSerializer)
             val onPayload: (Result<ByteArray>) -> Unit = { result ->
                 result.fold(
                     onSuccess = { payload ->
-                        runCatching {
-                            val payloadStr = payload.decodeToString()
-                            val wrapped = """{"topic":"${topic.topic}","msg":$payloadStr}"""
-                            json.decodeFromString(publishSerializer, wrapped)
-                        }.fold(
-                            onSuccess = { decoded -> onMessage(Result.success(decoded)) },
-                            onFailure = { e -> onMessage(Result.failure(RosTopicError.FailedDecodeMessage(e))) },
-                        )
+                        when (encoding.lowercase()) {
+                            "json" -> {
+                                runCatching {
+                                    val msg = json.decodeFromString(messageSerializer, payload.decodeToString())
+                                    RosTopicPublish(topic = topic.topic, message = msg)
+                                }.fold(
+                                    onSuccess = { decoded -> onMessage(Result.success(decoded)) },
+                                    onFailure = { e -> onMessage(Result.failure(RosTopicError.FailedDecodeMessage(e))) },
+                                )
+                            }
+                            "cdr" -> {
+                                val publish = when (topic.messageType) {
+                                    StringMessage.ROS_MESSAGE_TYPE ->
+                                        StringMessage.decodeFromCdr(payload)
+                                            ?.let { RosTopicPublish(topic = topic.topic, message = it) }
+                                    Int8Message.ROS_MESSAGE_TYPE ->
+                                        Int8Message.decodeFromCdr(payload)
+                                            ?.let { RosTopicPublish(topic = topic.topic, message = it) }
+                                    else -> null
+                                }
+                                if (publish != null) {
+                                    @Suppress("UNCHECKED_CAST")
+                                    val typed = publish as RosTopicPublish<M>
+                                    onMessage(Result.success(typed))
+                                } else {
+                                    onMessage(
+                                        Result.failure(
+                                            RosTopicError.FailedDecodeMessage(
+                                                Exception(
+                                                    "CDR decode failed or unsupported message type: ${topic.messageType}",
+                                                ),
+                                            ),
+                                        ),
+                                    )
+                                }
+                            }
+                            else -> {
+                                onMessage(
+                                    Result.failure(
+                                        RosTopicError.FailedDecodeMessage(
+                                            Exception("Unsupported encoding for subscribe: $encoding"),
+                                        ),
+                                    ),
+                                )
+                            }
+                        }
                     },
                     onFailure = { e -> onMessage(Result.failure(RosTopicError.FailedReceiveMessage(e))) },
                 )

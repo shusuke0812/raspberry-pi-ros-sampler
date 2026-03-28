@@ -1,5 +1,6 @@
 package com.shusuke.raspberry_pi_client.data.repository.hello
 
+import android.util.Log
 import com.shusuke.raspberry_pi_client.data.infrastructure.ros.topic.RosTopicPublish
 import com.shusuke.raspberry_pi_client.data.infrastructure.ros.topic.RosTopicSubscribe
 import com.shusuke.raspberry_pi_client.data.infrastructure.ros.topic.message.Int8Message
@@ -21,11 +22,11 @@ class HelloTopicRepository(
 ) {
     private val helloTopic = RosTopicSubscribe(
         topic = "/hello",
-        messageType = "std_msgs/msg/String",
+        messageType = StringMessage.ROS_MESSAGE_TYPE,
     )
     private val helloSignalTopic = RosTopicSubscribe(
         topic = "/hello_signal",
-        messageType = "std_msgs/msg/Int8",
+        messageType = Int8Message.ROS_MESSAGE_TYPE,
     )
 
     /**
