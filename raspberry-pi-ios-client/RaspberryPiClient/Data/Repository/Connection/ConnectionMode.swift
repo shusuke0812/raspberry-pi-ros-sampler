@@ -11,11 +11,4 @@ import Foundation
 enum ConnectionMode: String, CaseIterable {
     case rosBridge = "ROS Bridge"
     case foxgloveBridge = "Foxglove Bridge"
-
-    var port: Int {
-        switch self {
-        case .rosBridge: return 9090
-        case .foxgloveBridge: return 8765
-        }
-    }
 }
