@@ -8,4 +8,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Int8Message(
     val data: Byte = 0
-)
+) {
+    companion object {
+        /** CDR: カプセル 4 バイト + int8 1 バイト */
+        fun decodeFromCdr(data: ByteArray): Int8Message? {
+            if (data.size < 5) return null
+            return Int8Message(data = data[4])
+        }
+    }
+}
