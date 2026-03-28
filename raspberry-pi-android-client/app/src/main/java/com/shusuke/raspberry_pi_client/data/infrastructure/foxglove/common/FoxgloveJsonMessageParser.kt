@@ -16,6 +16,7 @@ object FoxgloveJsonMessageParser {
 
     private val json = Json {
         ignoreUnknownKeys = true
+        encodeDefaults = true
     }
 
     /**
