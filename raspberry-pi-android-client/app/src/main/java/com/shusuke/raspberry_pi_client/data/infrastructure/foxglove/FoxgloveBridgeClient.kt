@@ -5,6 +5,7 @@ import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.binary.Foxgl
 import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.binary.FoxgloveBinaryMessageParser
 import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.binary.FoxgloveServerBinaryMessage
 import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.common.FoxgloveJsonMessageParser
+import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.common.FoxgloveWireEncoding
 import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.common.FoxgloveServerJsonMessage
 import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.server.FoxgloveServerInfo
 import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.topic.FoxgloveClientAdvertise
@@ -159,7 +160,7 @@ class FoxgloveBridgeClient(
         val channel = FoxgloveClientAdvertiseChannel(
             id = channelId,
             topic = topic,
-            encoding = "json",
+            encoding = FoxgloveWireEncoding.Json.wireName,
             schemaName = schemaName,
             schema = null,
             schemaEncoding = null,
@@ -200,13 +201,15 @@ class FoxgloveBridgeClient(
             }
 
             val subscriptionId = nextSubscriptionId.getAndIncrement().toUInt()
-            val encoding = mapMutex.withLock { topicToEncodingMap[topic.topic] } ?: "json"
+            val encodingRaw = mapMutex.withLock { topicToEncodingMap[topic.topic] }
+                ?: FoxgloveWireEncoding.Json.wireName
+            val encoding = FoxgloveWireEncoding.parse(encodingRaw)
 
             val onPayload: (Result<ByteArray>) -> Unit = { result ->
                 result.fold(
                     onSuccess = { payload ->
-                        when (encoding.lowercase()) {
-                            "json" -> {
+                        when (encoding) {
+                            FoxgloveWireEncoding.Json -> {
                                 runCatching {
                                     val msg = json.decodeFromString(messageSerializer, payload.decodeToString())
                                     RosTopicPublish(topic = topic.topic, message = msg)
@@ -215,7 +218,7 @@ class FoxgloveBridgeClient(
                                     onFailure = { e -> onMessage(Result.failure(RosTopicError.FailedDecodeMessage(e))) },
                                 )
                             }
-                            "cdr" -> {
+                            FoxgloveWireEncoding.Cdr -> {
                                 val publish = when (topic.messageType) {
                                     StringMessage.ROS_MESSAGE_TYPE ->
                                         StringMessage.decodeFromCdr(payload)
@@ -241,11 +244,13 @@ class FoxgloveBridgeClient(
                                     )
                                 }
                             }
-                            else -> {
+                            is FoxgloveWireEncoding.Unsupported -> {
                                 onMessage(
                                     Result.failure(
                                         RosTopicError.FailedDecodeMessage(
-                                            Exception("Unsupported encoding for subscribe: $encoding"),
+                                            Exception(
+                                                "Unsupported encoding for subscribe: ${encoding.raw}",
+                                            ),
                                         ),
                                     ),
                                 )
@@ -334,15 +339,20 @@ class FoxgloveBridgeClient(
                     return@launch
                 }
 
-            val requestEncoding = mapMutex.withLock {
+            val requestEncodingRaw = mapMutex.withLock {
                 serviceNameToRequestEncodingMap[service.service]
-            } ?: "json"
+            } ?: FoxgloveWireEncoding.Json.wireName
+            val requestEncoding = FoxgloveWireEncoding.parse(requestEncodingRaw)
 
-            if (requestEncoding != "json") {
+            if (requestEncoding !is FoxgloveWireEncoding.Json) {
+                val label = when (requestEncoding) {
+                    is FoxgloveWireEncoding.Unsupported -> requestEncoding.raw
+                    else -> requestEncoding.wireName
+                }
                 onMessage(
                     Result.failure(
                         RosServiceError.FailedReceiveMessage(
-                            Exception("Only JSON encoding is supported, got: $requestEncoding"),
+                            Exception("Only JSON encoding is supported, got: $label"),
                         ),
                     ),
                 )
@@ -386,7 +396,7 @@ class FoxgloveBridgeClient(
             val binaryData = FoxgloveBinaryMessageEncoder.encodeServiceCallRequest(
                 serviceId = serviceId,
                 callId = callId,
-                encoding = requestEncoding,
+                encoding = requestEncoding.wireName,
                 payload = payloadBytes,
             )
             webSocketClient.send(binaryData)
