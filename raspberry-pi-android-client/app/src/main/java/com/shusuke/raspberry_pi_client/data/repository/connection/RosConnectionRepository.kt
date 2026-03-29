@@ -24,6 +24,18 @@ class RosConnectionRepository(
 
     private var currentConnectionMode: ConnectionMode = ConnectionMode.ROS_BRIDGE
 
+    private val activeConnectionClient: MessageBridgeConnection
+        get() = when (currentConnectionMode) {
+            ConnectionMode.ROS_BRIDGE -> object : MessageBridgeConnection {
+                override fun connect(ipAddress: String) = rosBridgeClient.connect(ipAddress)
+                override fun disconnect() = rosBridgeClient.disconnect()
+            }
+            ConnectionMode.FOXGLOVE_BRIDGE -> object : MessageBridgeConnection {
+                override fun connect(ipAddress: String) = foxgloveBridgeClient.connect(ipAddress)
+                override fun disconnect() = foxgloveBridgeClient.disconnect()
+            }
+        }
+
     /**
      * 現在の接続モードに応じたメッセージクライアント。
      */
@@ -31,18 +43,6 @@ class RosConnectionRepository(
         get() = when (currentConnectionMode) {
             ConnectionMode.ROS_BRIDGE -> rosAdapter
             ConnectionMode.FOXGLOVE_BRIDGE -> foxgloveAdapter
-        }
-
-    private val activeConnectionClient: RosBridgeConnectionClient
-        get() = when (currentConnectionMode) {
-            ConnectionMode.ROS_BRIDGE -> object : RosBridgeConnectionClient {
-                override fun connect(ipAddress: String) = rosBridgeClient.connect(ipAddress)
-                override fun disconnect() = rosBridgeClient.disconnect()
-            }
-            ConnectionMode.FOXGLOVE_BRIDGE -> object : RosBridgeConnectionClient {
-                override fun connect(ipAddress: String) = foxgloveBridgeClient.connect(ipAddress)
-                override fun disconnect() = foxgloveBridgeClient.disconnect()
-            }
         }
 
     /**
@@ -69,7 +69,7 @@ class RosConnectionRepository(
     fun observeConnectionState(): Flow<WebSocketConnectionState> =
         rosBridgeClient.observeConnectionState()
 
-    private interface RosBridgeConnectionClient {
+    private interface MessageBridgeConnection {
         fun connect(ipAddress: String)
         fun disconnect()
     }
