@@ -1,7 +1,7 @@
 package com.shusuke.raspberry_pi_client.di
 
-import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.FoxgloveBridgeClient
-import com.shusuke.raspberry_pi_client.data.infrastructure.ros.RosBridgeClient
+import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove_bridge.FoxgloveBridgeClient
+import com.shusuke.raspberry_pi_client.data.infrastructure.rosbridge.RosBridgeClient
 import com.shusuke.raspberry_pi_client.data.infrastructure.websocket.WebSocketClient
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
