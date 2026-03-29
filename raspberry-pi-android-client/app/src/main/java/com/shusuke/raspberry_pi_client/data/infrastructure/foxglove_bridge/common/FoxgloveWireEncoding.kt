@@ -1,4 +1,4 @@
-package com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.common
+package com.shusuke.raspberry_pi_client.data.infrastructure.foxglove_bridge.common
 
 /**
  * Foxglove WebSocket プロトコル上のメッセージ encoding（ワイヤ名）。

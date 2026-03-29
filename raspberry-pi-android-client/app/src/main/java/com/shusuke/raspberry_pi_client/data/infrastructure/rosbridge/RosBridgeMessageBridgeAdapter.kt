@@ -1,4 +1,4 @@
-package com.shusuke.raspberry_pi_client.data.infrastructure.foxglove
+package com.shusuke.raspberry_pi_client.data.infrastructure.rosbridge
 
 import com.shusuke.raspberry_pi_client.data.infrastructure.MessageBridgeClient
 import com.shusuke.raspberry_pi_client.data.infrastructure.ros.service.RosCallService
@@ -8,10 +8,12 @@ import com.shusuke.raspberry_pi_client.data.infrastructure.ros.topic.RosTopicSub
 import kotlinx.serialization.KSerializer
 
 /**
- * [FoxgloveBridgeClient] を [MessageBridgeClient] に適合させるアダプター。
+ * [RosBridgeClient] を [MessageBridgeClient] に適合させるアダプター。
+ *
+ * schemaName は RosBridge では未使用のため無視する。
  */
-class FoxgloveMessageBridgeAdapter(
-    private val foxgloveBridgeClient: FoxgloveBridgeClient,
+class RosBridgeMessageBridgeAdapter(
+    private val rosBridgeClient: RosBridgeClient,
 ) : MessageBridgeClient {
 
     override fun <T> publish(
@@ -19,7 +21,7 @@ class FoxgloveMessageBridgeAdapter(
         messageSerializer: KSerializer<T>,
         schemaName: String,
     ) {
-        foxgloveBridgeClient.publish(topic, messageSerializer, schemaName)
+        rosBridgeClient.publish(topic, messageSerializer)
     }
 
     override fun <M> startSubscribe(
@@ -27,11 +29,11 @@ class FoxgloveMessageBridgeAdapter(
         messageSerializer: KSerializer<M>,
         onMessage: (Result<RosTopicPublish<M>>) -> Unit,
     ) {
-        foxgloveBridgeClient.startSubscribe(topic, messageSerializer, onMessage)
+        rosBridgeClient.startSubscribe(topic, messageSerializer, onMessage)
     }
 
     override fun endSubscribe(topic: RosTopicSubscribe) {
-        foxgloveBridgeClient.endSubscribe(topic)
+        rosBridgeClient.endSubscribe(topic)
     }
 
     override fun <A, R> callService(
@@ -40,6 +42,6 @@ class FoxgloveMessageBridgeAdapter(
         responseSerializer: KSerializer<RosServiceResponse<R>>,
         onMessage: (Result<RosServiceResponse<R>>) -> Unit,
     ) {
-        foxgloveBridgeClient.callService(service, argsSerializer, responseSerializer, onMessage)
+        rosBridgeClient.callService(service, argsSerializer, responseSerializer, onMessage)
     }
 }

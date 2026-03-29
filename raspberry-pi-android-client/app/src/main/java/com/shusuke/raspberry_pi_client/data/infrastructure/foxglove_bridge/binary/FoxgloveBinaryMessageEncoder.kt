@@ -1,4 +1,4 @@
-package com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.binary
+package com.shusuke.raspberry_pi_client.data.infrastructure.foxglove_bridge.binary
 
 import java.nio.ByteBuffer
 import java.nio.ByteOrder

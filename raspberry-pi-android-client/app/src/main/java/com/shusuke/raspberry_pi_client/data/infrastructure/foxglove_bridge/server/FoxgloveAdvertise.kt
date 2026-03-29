@@ -1,6 +1,6 @@
-package com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.server
+package com.shusuke.raspberry_pi_client.data.infrastructure.foxglove_bridge.server
 
-import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.common.FoxgloveMessageOperation
+import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove_bridge.common.FoxgloveMessageOperation
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

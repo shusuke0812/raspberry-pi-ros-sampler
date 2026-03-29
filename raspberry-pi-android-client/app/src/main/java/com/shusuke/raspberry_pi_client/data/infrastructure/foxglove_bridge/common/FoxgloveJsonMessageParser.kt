@@ -1,8 +1,8 @@
-package com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.common
+package com.shusuke.raspberry_pi_client.data.infrastructure.foxglove_bridge.common
 
-import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.server.FoxgloveAdvertise
-import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.server.FoxgloveAdvertiseServices
-import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.server.FoxgloveServerInfo
+import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove_bridge.server.FoxgloveAdvertise
+import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove_bridge.server.FoxgloveAdvertiseServices
+import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove_bridge.server.FoxgloveServerInfo
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json

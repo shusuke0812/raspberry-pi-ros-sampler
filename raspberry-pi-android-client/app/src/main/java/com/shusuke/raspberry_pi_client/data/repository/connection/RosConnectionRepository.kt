@@ -1,10 +1,10 @@
 package com.shusuke.raspberry_pi_client.data.repository.connection
 
 import com.shusuke.raspberry_pi_client.data.infrastructure.MessageBridgeClient
-import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.FoxgloveBridgeClient
-import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove.FoxgloveMessageBridgeAdapter
-import com.shusuke.raspberry_pi_client.data.infrastructure.ros.RosBridgeClient
-import com.shusuke.raspberry_pi_client.data.infrastructure.ros.RosBridgeMessageBridgeAdapter
+import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove_bridge.FoxgloveBridgeClient
+import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove_bridge.FoxgloveMessageBridgeAdapter
+import com.shusuke.raspberry_pi_client.data.infrastructure.rosbridge.RosBridgeClient
+import com.shusuke.raspberry_pi_client.data.infrastructure.rosbridge.RosBridgeMessageBridgeAdapter
 import com.shusuke.raspberry_pi_client.data.infrastructure.websocket.WebSocketConnectionState
 import kotlinx.coroutines.flow.Flow
 

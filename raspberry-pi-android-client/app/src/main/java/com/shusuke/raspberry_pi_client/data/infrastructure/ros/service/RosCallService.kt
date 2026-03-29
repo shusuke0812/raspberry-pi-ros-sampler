@@ -1,6 +1,6 @@
 package com.shusuke.raspberry_pi_client.data.infrastructure.ros.service
 
-import com.shusuke.raspberry_pi_client.data.infrastructure.ros.RosBridgeMessageOperation
+import com.shusuke.raspberry_pi_client.data.infrastructure.rosbridge.RosBridgeMessageOperation
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

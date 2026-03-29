@@ -1,4 +1,4 @@
-package com.shusuke.raspberry_pi_client.data.infrastructure.ros
+package com.shusuke.raspberry_pi_client.data.infrastructure.rosbridge
 
 import com.shusuke.raspberry_pi_client.data.infrastructure.ros.service.RosCallService
 import com.shusuke.raspberry_pi_client.data.infrastructure.ros.service.RosServiceError
