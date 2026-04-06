@@ -40,11 +40,16 @@ interface MessageBridgeClient {
 
     /**
      * ROS サービスを呼び出す。
+     *
+     * @param cdrEncoder CDR エンコード関数。Foxglove Bridge が CDR を要求した場合に使用される。
+     * @param cdrResponseDecoder CDR レスポンスデコード関数。Foxglove Bridge から CDR レスポンスを受信した場合に使用される。
      */
     fun <A, R> callService(
         service: RosCallService<A>,
         argsSerializer: KSerializer<A>,
         responseSerializer: KSerializer<RosServiceResponse<R>>,
         onMessage: (Result<RosServiceResponse<R>>) -> Unit,
+        cdrEncoder: ((A) -> ByteArray)? = null,
+        cdrResponseDecoder: ((ByteArray) -> R)? = null,
     )
 }

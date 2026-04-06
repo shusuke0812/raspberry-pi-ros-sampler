@@ -39,7 +39,16 @@ class FoxgloveMessageBridgeAdapter(
         argsSerializer: KSerializer<A>,
         responseSerializer: KSerializer<RosServiceResponse<R>>,
         onMessage: (Result<RosServiceResponse<R>>) -> Unit,
+        cdrEncoder: ((A) -> ByteArray)?,
+        cdrResponseDecoder: ((ByteArray) -> R)?,
     ) {
-        foxgloveBridgeClient.callService(service, argsSerializer, responseSerializer, onMessage)
+        foxgloveBridgeClient.callService(
+            service = service,
+            argsSerializer = argsSerializer,
+            responseSerializer = responseSerializer,
+            onMessage = onMessage,
+            cdrEncoder = cdrEncoder,
+            cdrResponseDecoder = cdrResponseDecoder,
+        )
     }
 }
