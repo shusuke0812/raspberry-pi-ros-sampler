@@ -41,6 +41,8 @@ class RosBridgeMessageBridgeAdapter(
         argsSerializer: KSerializer<A>,
         responseSerializer: KSerializer<RosServiceResponse<R>>,
         onMessage: (Result<RosServiceResponse<R>>) -> Unit,
+        cdrEncoder: ((A) -> ByteArray)?,
+        cdrResponseDecoder: ((ByteArray) -> R)?,
     ) {
         rosBridgeClient.callService(service, argsSerializer, responseSerializer, onMessage)
     }

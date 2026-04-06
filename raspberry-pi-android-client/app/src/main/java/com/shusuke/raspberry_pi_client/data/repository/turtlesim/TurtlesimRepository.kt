@@ -43,6 +43,8 @@ class TurtlesimRepository(
                 service = callService,
                 argsSerializer = TurtlesimServiceArgs.serializer(),
                 responseSerializer = RosServiceResponse.serializer(TurtlesimServiceResponse.serializer()),
+                cdrEncoder = { TurtlesimServiceArgs.encodeToCdr(it) },
+                cdrResponseDecoder = { TurtlesimServiceResponse.decodeFromCdr(it) ?: TurtlesimServiceResponse() },
                 onMessage = { result ->
                     result.fold(
                         onSuccess = { cont.resume(Result.success(Unit)) },

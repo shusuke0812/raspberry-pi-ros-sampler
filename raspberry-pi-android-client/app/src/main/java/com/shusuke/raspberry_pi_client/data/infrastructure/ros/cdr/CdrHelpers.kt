@@ -32,6 +32,24 @@ object CdrHelpers {
         return stringBytes.decodeToString()
     }
 
+    /**
+     * CDR string をエンコードする。
+     *
+     * uint32 LE 長さフィールド（null 終端を含む）＋ UTF-8 バイト列 ＋ null バイト。
+     *
+     * @param value エンコードする文字列
+     * @return CDR string バイト列
+     */
+    fun encodeCdrString(value: String): ByteArray {
+        val strBytes = value.encodeToByteArray()
+        val length = strBytes.size + 1  // null 終端を含む長さ
+        val buf = ByteBuffer.allocate(4 + length).order(ByteOrder.LITTLE_ENDIAN)
+        buf.putInt(length)
+        buf.put(strBytes)
+        buf.put(0x00.toByte())
+        return buf.array()
+    }
+
     private fun readUInt32LittleEndian(data: ByteArray, offset: Int): UInt {
         return ByteBuffer.wrap(data, offset, 4)
             .order(ByteOrder.LITTLE_ENDIAN)
