@@ -2,6 +2,7 @@ package com.shusuke.raspberry_pi_client.data.infrastructure.foxglove_bridge
 
 import android.util.Log
 import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove_bridge.binary.FoxgloveBinaryMessageEncoder
+import com.shusuke.raspberry_pi_client.data.infrastructure.util.BinaryLogHelpers
 import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove_bridge.binary.FoxgloveBinaryMessageParser
 import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove_bridge.binary.FoxgloveServerBinaryMessage
 import com.shusuke.raspberry_pi_client.data.infrastructure.foxglove_bridge.common.FoxgloveJsonMessageParser
@@ -153,6 +154,7 @@ class FoxgloveBridgeClient(
                 sendClientAdvertise(topic.topic, channelId, schemaName)
             }
             val binaryData = FoxgloveBinaryMessageEncoder.encodeClientMessageData(channelId, payloadBytes)
+            Log.d("test", "send(encodeClientMessageData): ${BinaryLogHelpers.toHexString(binaryData)}")
             webSocketClient.send(binaryData)
         }
     }
@@ -464,6 +466,7 @@ class FoxgloveBridgeClient(
                 encoding = requestEncoding.wireName,
                 payload = payloadBytes,
             )
+            Log.d("FoxgloveBridgeClient", "send(encodeServiceCallRequest): ${BinaryLogHelpers.toHexString(binaryData)}")
             webSocketClient.send(binaryData)
         }
     }
