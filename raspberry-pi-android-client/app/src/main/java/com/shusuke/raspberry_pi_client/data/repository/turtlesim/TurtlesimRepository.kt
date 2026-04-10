@@ -1,5 +1,6 @@
 package com.shusuke.raspberry_pi_client.data.repository.turtlesim
 
+import com.shusuke.raspberry_pi_client.data.infrastructure.ros.cdr.CdrHelpers
 import com.shusuke.raspberry_pi_client.data.infrastructure.ros.service.EmptyService
 import com.shusuke.raspberry_pi_client.data.infrastructure.ros.service.RosCallService
 import com.shusuke.raspberry_pi_client.data.infrastructure.ros.service.RosServiceError
@@ -96,6 +97,8 @@ class TurtlesimRepository(
             service = callService,
             argsSerializer = EmptyService.serializer(),
             responseSerializer = RosServiceResponse.serializer(EmptyService.serializer()),
+            cdrEncoder = { CdrHelpers.encapsulationHeader.copyOf() },
+            cdrResponseDecoder = { EmptyService },
             onMessage = { /* レスポンスは無視 */ },
         )
     }

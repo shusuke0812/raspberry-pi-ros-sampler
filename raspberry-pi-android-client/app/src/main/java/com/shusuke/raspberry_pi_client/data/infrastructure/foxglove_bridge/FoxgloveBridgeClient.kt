@@ -361,10 +361,9 @@ class FoxgloveBridgeClient(
                     )
                 }
                 FoxgloveWireEncoding.Cdr -> {
-                    Log.d("test", "CDR !!!!")
                     val args = service.args
-                    val encoder = cdrEncoder
-                    if (encoder == null || args == null) {
+                    Log.d("test", "CDR !!!!, encoder=$cdrEncoder, args=$args")
+                    if (cdrEncoder == null || args == null) {
                         onMessage(
                             Result.failure(
                                 RosServiceError.FailedReceiveMessage(
@@ -374,7 +373,7 @@ class FoxgloveBridgeClient(
                         )
                         return@launch
                     }
-                    runCatching { encoder(args) }.fold(
+                    runCatching { cdrEncoder(args) }.fold(
                         onSuccess = { it },
                         onFailure = {
                             onMessage(Result.failure(RosServiceError.FailedReceiveMessage(it)))
