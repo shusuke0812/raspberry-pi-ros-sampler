@@ -1,6 +1,6 @@
 package com.shusuke.raspberry_pi_client.data.repository.turtlesim
 
-import com.shusuke.raspberry_pi_client.data.infrastructure.ros.service.EmptyService
+import com.shusuke.raspberry_pi_client.data.infrastructure.ros.service.DummyEmptyService
 import com.shusuke.raspberry_pi_client.data.infrastructure.ros.service.RosCallService
 import com.shusuke.raspberry_pi_client.data.infrastructure.ros.service.RosServiceError
 import com.shusuke.raspberry_pi_client.data.infrastructure.ros.service.RosServiceResponse
@@ -88,14 +88,16 @@ class TurtlesimRepository(
      * `/reset` サービスを呼び出す。レスポンスは特に扱わない。
      */
     fun reset() {
-        val callService = RosCallService<EmptyService>(
+        val callService = RosCallService<DummyEmptyService>(
             service = "/reset",
-            args = EmptyService,
+            args = DummyEmptyService(),
         )
         connectionRepository.activeMessageClient.callService(
             service = callService,
-            argsSerializer = EmptyService.serializer(),
-            responseSerializer = RosServiceResponse.serializer(EmptyService.serializer()),
+            argsSerializer = DummyEmptyService.serializer(),
+            responseSerializer = RosServiceResponse.serializer(DummyEmptyService.serializer()),
+            cdrEncoder = { DummyEmptyService.encodeToCdr(it) },
+            cdrResponseDecoder = { DummyEmptyService.decodeFromCdr(it) },
             onMessage = { /* レスポンスは無視 */ },
         )
     }

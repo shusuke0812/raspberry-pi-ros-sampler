@@ -43,7 +43,7 @@ object FoxgloveBinaryMessageParser {
             return FoxgloveServerBinaryMessage.Unknown(opcode = OPCODE_MESSAGE_DATA, error = FoxgloveBinaryParseError.InsufficientData)
         }
         val buffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN)
-        val subscriptionId = buffer.int.toUInt() and 0xFFFFFFFFu
+        val subscriptionId = buffer.int.toUInt()
         val timestamp = buffer.long
         val payload = data.copyOfRange(12, data.size)
         return FoxgloveServerBinaryMessage.MessageData(

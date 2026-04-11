@@ -15,9 +15,10 @@ object FoxgloveBinaryMessageEncoder {
 
     /**
      * Client Message Data（opcode 0x01）をエンコードする
+     * データ形式 [opcode 1Byte][channelId 4Byte][payload NByte]
      *
      * @param channelId Client Advertise で登録したチャンネル ID
-     * @param payload メッセージペイロード（JSON エンコード済みなど）
+     * @param payload メッセージペイロード（CDR エンコード済みなど）
      * @return 送信用バイナリデータ
      */
     fun encodeClientMessageData(channelId: UInt, payload: ByteArray): ByteArray {
@@ -31,10 +32,11 @@ object FoxgloveBinaryMessageEncoder {
 
     /**
      * Service Call Request（opcode 0x02）をエンコードする
+     * データ形式 [opcode 1Byte][serviceId 4Byte][callId 4Byte][encoding length 4Byte][payload NByte]
      *
-     * @param serviceId Advertise Services で取得したサービス ID
-     * @param callId レスポンスと対応付けるための一意な ID
-     * @param encoding エンコーディング名（例: "json"）
+     * @param serviceId Advertise Services で取得したサービス ID（/spawn のようなサービス名を識別するID）
+     * @param callId レスポンスと対応付けるための一意な ID（各リクエストごとに発行されるID、同じサービスが複数回呼ばれても良いようにリクエスト・レスポンスを紐づけるためのID）
+     * @param encoding エンコーディング名（"json", "cdr"）
      * @param payload リクエストペイロード
      * @return 送信用バイナリデータ
      */
