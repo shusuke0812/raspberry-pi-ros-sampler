@@ -6,35 +6,35 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
- * `bool ignore_this_field` を持つダミーの空サービス型。
+ * `uint32 ignoreThisField` を持つダミーの空サービス型。
  *
- * CDR エンコード: header(4) + bool(1) = 5 バイト
+ * CDR エンコード: header(4) + uint32(4) = 8 バイト
  */
 @Serializable
-data class DummyEmptyService(val ignore_this_field: Boolean = false) {
+data class DummyEmptyService(val ignoreThisField: UInt = 0u) {
     companion object {
         /**
          * CDR LE バイナリにエンコードする。
          *
-         * 構造: header(4) + ignore_this_field(1)
+         * 構造: header(4) + ignoreThisField(4)
          */
         fun encodeToCdr(args: DummyEmptyService): ByteArray {
-            val buffer = ByteBuffer.allocate(4 + 1).order(ByteOrder.LITTLE_ENDIAN)
+            val buffer = ByteBuffer.allocate(4 + 4).order(ByteOrder.LITTLE_ENDIAN)
             buffer.put(CdrHelpers.encapsulationHeader)
-            buffer.put(if (args.ignore_this_field) 0x01.toByte() else 0x00.toByte())
+            buffer.putInt(args.ignoreThisField.toInt())
             return buffer.array()
         }
 
         /**
          * CDR バイナリからデコードする。
          *
-         * @param data CDR バイナリ（header 4 バイト + bool 1 バイト）
+         * @param data CDR バイナリ（header 4 バイト + uint32 4 バイト）
          * @return デコード結果。データ不足の場合はデフォルト値を返す
          */
         fun decodeFromCdr(data: ByteArray): DummyEmptyService {
-            if (data.size < 5) return DummyEmptyService()
-            val value = data[4] != 0x00.toByte()
-            return DummyEmptyService(ignore_this_field = value)
+            if (data.size < 8) return DummyEmptyService()
+            val value = ByteBuffer.wrap(data, 4, 4).order(ByteOrder.LITTLE_ENDIAN).int.toUInt()
+            return DummyEmptyService(ignoreThisField = value)
         }
     }
 }
